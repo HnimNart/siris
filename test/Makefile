@@ -7,8 +7,8 @@ fsharpc=fsharpc --nologo
 
 all: Siris.exe
 
-Siris.exe: SirisTest.fsx Lexer.dll Parser.dll AbSyn.dll SymTab.dll Interpreter.dll $(powerpack)
-	$(fsharpc) SirisTest.fsx -r Lexer.dll -r Parser.dll -r AbSyn.dll -r Interpreter.dll -r $(powerpack)
+Siris.exe: SirisTest.fsx Lexer.dll Parser.dll AbSyn.dll SymTab.dll Interpreter.dll ReverseProg.dll $(powerpack)
+	$(fsharpc) SirisTest.fsx -r Lexer.dll -r Parser.dll -r AbSyn.dll -r ReverseProg.dll -r Interpreter.dll -r $(powerpack)
 
 Lexer.dll: Lexer.fs Parser.dll $(powerpack)
 	$(fsharpc) -a Lexer.fs -r Parser.dll -r $(powerpack)
@@ -28,9 +28,12 @@ AbSyn.dll: ../src/AbSyn.fs
 SymTab.dll: ../src/SymTab.fs
 	$(fsharpc) -a ../src/SymTab.fs -o SymTab.dll
 
+Interpreter.dll: ../src/Interpreter.fs AbSyn.dll SymTab.dll ReverseProg.dll
+	$(fsharpc) -a ../src/Interpreter.fs -r AbSyn.dll -r SymTab.dll -r ReverseProg.dll -o Interpreter.dll
 
-Interpreter.dll: ../src/Interpreter.fs AbSyn.dll SymTab.dll
-	$(fsharpc) -a ../src/Interpreter.fs -r AbSyn.dll -r SymTab.dll -o Interpreter.dll
+ReverseProg.dll: ../src/ReverseProg.fs AbSyn.dll
+	$(fsharpc) -a ../src/ReverseProg.fs  -r AbSyn.dll -o ReverseProg.dll
+
 
 
 clean:

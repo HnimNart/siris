@@ -24,6 +24,7 @@ ParserLib=bin/Parser.dll
 LexerLib=bin/Lexer.dll
 SymTabLib=bin/SymTab.dll
 InterpreterLib=bin/Interpreter.dll
+ReverseProgLib=bin/ReverseProg.dll
 SirisExe=bin/Siris.exe
 
 all: $(SirisExe)
@@ -49,8 +50,12 @@ $(SymTabLib): src/SymTab.fs
 $(InterpreterLib): src/Interpreter.fs $(AbSynLib) $(SymTabLib)
 	$(fsharpc) -a src/Interpreter.fs -r $(AbSynLib) -r $(SymTabLib) -o $(InterpreterLib)
 
-$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(InterpreterLib)
-	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib) -r $(InterpreterLib) -r $(powerpack) -o $(SirisExe)
+ReverseProg.dll: ../src/ReverseProg.fs AbSyn.dll
+	$(fsharpc) -a ../src/ReverseProg.fs  -r AbSyn.dll -o ReverseProg.dll
+
+
+$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(InterpreterLib) $(ReverseProgLib)
+	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib) -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
 
 clean:
 	rm -f bin/*.dll bin/*.fs bin/Parser.fsyacc.output bin/Parser.fsi bin/Fasto.exe

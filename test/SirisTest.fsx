@@ -5,6 +5,7 @@ open Microsoft.FSharp.Text.Parsing
 open System.IO
 
 open AbSyn
+open ReverseProg
 (* Both lex and parse a program. *)
 let parse (s : string) =
     Parser.Prog Lexer.Token
@@ -23,6 +24,9 @@ let interpretSimple (str : string) : AbSyn.Value =
     Interpreter.evalProg pgm
 
 
+let reverseProg(str:string) =
+    let pgm = parseString str
+    ReverseProg.inverseProgram(pgm)
 
 
 (* Continually evaluate user expressions. *)
@@ -36,8 +40,8 @@ let loop () =
             then
                 running <- false
             else
-                printfn "Parse result: %A" (interpretSimple program)
-                printfn "Syntax tree %A" (parse program)
+                printfn "Parse result: %A" (Interpreter.evalProg (reverseProg program))
+                printfn "Syntax tree %A" (ReverseProg.inverseProgram (parse program))
         with
         | Failure msg -> printfn "%s" msg
         | :? System.ArgumentNullException ->
