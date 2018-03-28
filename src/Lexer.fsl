@@ -43,11 +43,11 @@ let keyword (s, pos) =
        | "uncall"       -> Parser.UNCALL pos
        | "repeat"       -> Parser.REPEAT pos
        | "until"        -> Parser.UNTIL pos
-       | "read"         -> Parser.READ pos
-       | "write"        -> Parser.WRITE pos
        | "procedure"    -> Parser.PROCEDURE pos
        | "end"          -> Parser.END pos
-       | _              -> Parser.ID (s, pos)
+       | "print"        -> Parser.PRINT pos
+       | "read"         -> Parser.READ pos
+       | _              -> Parser.VAR (s, pos)
 
 }
 
@@ -64,9 +64,12 @@ rule Token = parse
                                   ( int (Encoding.UTF8.GetString(lexbuf.Lexeme))
                                   , getPos lexbuf )
                               }
-  | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
+  | ['a'-'z']['a'-'z''0'-'9' '_']*
                           { keyword ( Encoding.UTF8.GetString(lexbuf.Lexeme)
                                     , getPos lexbuf ) }
+  | ['A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
+                          { Parser.ID (Encoding.UTF8.GetString(lexbuf.Lexeme)
+                                       , getPos lexbuf)}
   | "+="                  { Parser.PASSIGN (getPos lexbuf) }
   | "-="                  { Parser.MASSIGN (getPos lexbuf) }
   | '+'                   { Parser.PLUS    (getPos lexbuf) }
@@ -79,5 +82,5 @@ rule Token = parse
   | '('                   { Parser.LPAR    (getPos lexbuf) }
   | ')'                   { Parser.RPAR    (getPos lexbuf) }
   | ';'                   { Parser.SEMIC   (getPos lexbuf) }
-  | eof                   { Parser.EOF    (getPos lexbuf) }
+  | eof                   { Parser.EOF     (getPos lexbuf) }
   | _                     { lexerError lexbuf "Illegal symbol in input" }

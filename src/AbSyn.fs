@@ -25,16 +25,16 @@ type Exp<'T> =
   | Less of Exp<'T> * Exp<'T> * Position
   | Equal of Exp<'T> * Exp<'T> * Position
 
-
 type Statement<'T> =
     PlusAssignment of string * Exp<'T> * Position
   | MinusAssignment of string * Exp<'T> * Position
   | If of Exp<'T> * Statement<'T> List * Statement<'T> List * Exp<'T> * Position
   | Repeat of Statement<'T> List * Exp<'T> * Position
-  // | Statement of Statement<'T> List * Position
   | Call of string * Position
   | Uncall of string * Position
-  // | StatementList of Statement<'T> list
+  | Print of string * Position
+  | Read of string * Position
+
 
 type ProcDec<'T> =
     ProcDec of string * Statement<'T> List * Position
