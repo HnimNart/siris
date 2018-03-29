@@ -137,7 +137,7 @@ let main(paramList: string[]) : int =
           Interpreter.evalProg(ReverseProg.inverseProgram (parseFromFile file))
 
           // printfn "REVERSE TREE: %A" (ReverseProg.inverseProgram (parseFromFile file))
-          // 0
+          // printfn "NORMAL TREE: %A" ((parseFromFile file))
       | [|"-fr"; file|]      ->
           Interpreter.evalProg (parseFromFile file) |> ignore
           Interpreter.evalProg (ReverseProg.inverseProgram (parseFromFile file))

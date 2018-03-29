@@ -1,7 +1,9 @@
-x, res;
+x, res, tmp;
 read(x);
 res += 1;
-call Fact(x,res);
+tmp += res;
+// call Fact(x,res);
+call Fact2(x,res);
 print(res)
 
 // read(res);
@@ -19,18 +21,18 @@ procedure Fact(n, res)
       res += tmp;
       n -= 1;
       call Fact(n , res)
-    } fi (tmp = 0);
+    } fi (n = 0)
 end
 
+
 procedure Fact2(n, res)
-   tmp;
-   tmp -= res;
-   if (tmp = res) then {
-   } else {
-     uncall Fact2(n, res);
-     res -= n * tmp;
-     n += 1;
-     tmp -= res
-   } fi (n = 1);
-   tmp += res
+
+    repeat {
+     i += n;
+
+
+
+
+    } until (i = 0)
+
 end

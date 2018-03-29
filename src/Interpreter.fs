@@ -105,30 +105,17 @@ let rec evalStatement(s: UntypedStatement,
 
   | Call (id, param, pos)  ->
 
-      let evargs = List.map (fun e -> match SymTab.lookup (getStringOfParam e) vtab with
-                                        | None -> raise( MyError("Parameter " + getStringOfParam e  +
-                                                                 " is not defined", pos))
-                                        | Some v -> v) param
-
       match SymTab.lookup id ptab with
         | None    -> raise( MyError("Call to undefined procedure: " + id, pos))
-        // | Some p  -> callProcWithVtable (p, evargs, vtab, ptab, pos, vSet)
         | Some p  -> callProcWithVtable (p, param, vtab, ptab, pos, vSet)
 
   | Uncall (id, param, pos)  ->
 
-      let evargs = List.map (fun e -> match SymTab.lookup (getStringOfParam e) vtab with
-                                        | None ->
-                                              raise(MyError("Variable " + getStringOfParam e + " is not defined", pos))
-                                        | Some v -> v) param
-
       match SymTab.lookup id ptab with
         | None    -> raise( MyError("Call to undefined procedure: " + id, pos))
         | Some p  ->
-            let revStats = ReverseProg.rev (getProcStat p) []
-            let p' = ProcDec(getProcName p, getProcParam p, getProcDecl p, revStats, getProcPos p)
-            callProcWithVtable (p', param , vtab, ptab, pos, vSet)
-
+            let inverseProcedure = ReverseProg.inverseProcedures p
+            callProcWithVtable (inverseProcedure, param , vtab, ptab, pos, vSet)
 
   | Print(var, pos) ->
       let value =

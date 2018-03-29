@@ -19,13 +19,10 @@ let rec inverseStatementList(statList : UntypedStatement List ):
         | ( s :: ss ) ->
             inverseStatement(s) :: inverseStatementList ss
 
-and inverseProcedures(procedures: UntypedProcDec List) :
-                     UntypedProcDec List =
-     match procedures with
-         | [] -> []
-         | p :: ps ->
-             let (name,param , decl ,statList, pos) = (getProcName p, getProcParam p , getProcDecl p, getProcStat p, getProcPos p)
-             ProcDec(name, param,  decl, inverseStatementList(statList), pos) :: inverseProcedures(ps)
+and inverseProcedures(p: UntypedProcDec) :
+                     UntypedProcDec =
+    let (name,param , decl ,statList, pos) = (getProcName p, getProcParam p , getProcDecl p, getProcStat p, getProcPos p)
+    ProcDec(name, param,  decl, inverseStatementList(statList), pos)
 
 and inverseStatement(s : UntypedStatement) =
     match s with
@@ -36,7 +33,7 @@ and inverseStatement(s : UntypedStatement) =
     | If (e1, s1, s2, e2, pos) ->
         let s1' = rev (inverseStatementList s1) []
         let s2' = rev (inverseStatementList s2) []
-        If (e2, s1', s2', e1, pos)
+        If (e2, s2', s1', e1, pos)
     | Repeat(s1, e1, pos) ->
         let s1' = inverseStatementList s1
         Repeat(s1', e1, pos)
@@ -53,4 +50,4 @@ and inverseStatement(s : UntypedStatement) =
 and inverseProgram(p : UntypedProg) : UntypedProg =
    let (dec, statements, proc) = p
    let reverseStatements = rev (inverseStatementList statements)  []
-   (dec, reverseStatements, inverseProcedures proc)
+   (dec, reverseStatements, proc)
