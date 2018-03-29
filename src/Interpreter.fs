@@ -256,6 +256,27 @@ and evalExp(e: UntypedExp,
         let r2 = evalExp(e2, vtab , lhsVariable)
         match (r1, r2) with
           | (IntVal  n1,    IntVal  n2  )  -> if n1 < n2 then IntVal(1) else IntVal(0)
+  | Less(e1, e2, pos)  ->
+        let r1 = evalExp(e1, vtab , lhsVariable)
+        let r2 = evalExp(e2, vtab , lhsVariable)
+        match (r1, r2) with
+          | (IntVal  n1,    IntVal  n2  )  -> if n1 < n2 then IntVal(1) else IntVal(0)
+   | Or (e1, e2, pos)  ->
+        let r1 = evalExp(e1, vtab , lhsVariable)
+        let r2 = evalExp(e2, vtab , lhsVariable)
+        match (r1, r2) with
+          | (IntVal n1, IntVal n2 )  ->
+              match (n1, n2) with
+                  | (1,1) -> IntVal(1)
+                  | (1,0) -> IntVal(1)
+                  | (0,1) -> IntVal(1)
+                  | (0,0) -> IntVal(0)
+                  |  _    -> raise( MyError("Expression does not contait to comparisons", pos))
+
+
+
+
+
 
 and repeatEval(statList: UntypedStatement List,
                  e : UntypedExp,

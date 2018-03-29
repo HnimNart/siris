@@ -34,6 +34,7 @@ type Exp<'T> =
   | Modulo of Exp<'T> * Exp<'T> * Position
   | Less of Exp<'T> * Exp<'T> * Position
   | Equal of Exp<'T> * Exp<'T> * Position
+  | Or of Exp<'T> * Exp<'T> * Position
 
 type Statement<'T> =
     PlusAssignment of string * Exp<'T> * Position
@@ -44,6 +45,7 @@ type Statement<'T> =
   | Uncall of string * Param List *  Position
   | Print of string * Position
   | Read of string * Position
+//  | Swap
 
 type ProcDec<'T> =
     ProcDec of string * Param List * Declaration<'T> List * Statement<'T> List * Position
