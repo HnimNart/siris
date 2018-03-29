@@ -1,0 +1,5 @@
+#!/bin/sh
+
+base_dir="$(dirname "$0")"
+export MONO_PATH="$base_dir/../lib/"
+mono "$base_dir/Siris.exe" "$@"
