@@ -46,7 +46,6 @@ let getProcPos  (ProcDec(_, _ , pos))  = pos
 type Prog<'T> =
     Statement<'T> List * ProcDec<'T> list
 
-
 type UntypedProg = Prog<unit>
 type UntypedProcDec = ProcDec<unit>
 type UntypedExp = Exp<unit>

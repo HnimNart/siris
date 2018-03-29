@@ -6,8 +6,8 @@
     <ProjectGuid>{310F8AC7-1F3A-43DA-9A66-B78AAB1B449B}</ProjectGuid>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <OutputType>Exe</OutputType>
-    <RootNamespace>fasto</RootNamespace>
-    <AssemblyName>fasto</AssemblyName>
+    <RootNamespace>siris</RootNamespace>
+    <AssemblyName>siris</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
   </PropertyGroup>
     <PropertyGroup>
@@ -38,6 +38,8 @@
     <Compile Include="Parser.fs" />
     <Compile Include="SymTab.fs" />
     <Compile Include="SymTab.fsi" />
+    <Compile Include="Checker.fs" />
+    <Compile Include="ReverseProg.fs" />
   </ItemGroup>
   <Import Project="$(FSharpTargetsPath)" />
 </Project>

@@ -2,7 +2,6 @@ module Interpreter
 
 open System
 open AbSyn
-open SymTab
 
 (* An exception for reporting run-time errors. *)
 exception MyError of string * Position
@@ -241,7 +240,12 @@ and evalStatementList(sList : UntypedStatement List,
             let vtab' = evalStatement(s, vtab, ptab)
             evalStatementList(ss, vtab', ptab)
 
-and evalProg (prog: UntypedProg) : Value =
+and evalProg (prog: UntypedProg) : int =
     let ptab = buildPtab (snd prog)
-    let vtab = evalStatementList (fst prog, SymTab.empty(), ptab )
-    IntVal(1)
+    // Build init symbol table
+    let vSet = Checker.initializeProg(prog)
+    let vTab : VarTable = Set.fold (fun acc x -> SymTab.bind x constZero acc) (SymTab.empty()) vSet
+
+    let vTab' = evalStatementList (fst prog, vTab, ptab)
+    // Check if all variables are non-zero
+    Checker.checkNonZeroVar(vTab', vSet)

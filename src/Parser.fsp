@@ -78,10 +78,10 @@ Statement : VAR PASSIGN Exp
                   { Call (fst $2, $1)}
           | UNCALL ID
                   { Uncall (fst $2, $1)}
-          | PRINT VAR
-                  { Print (fst $2, $1)}
-          | READ VAR
-                  { Read (fst $2, $1)}
+          | PRINT LPAR VAR RPAR
+                  { Print (fst $3, $1)}
+          | READ LPAR VAR RPAR
+                  { Read (fst $3, $1)}
 ;
 
 Type      : INT        { AbSyn.Int }
