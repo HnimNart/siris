@@ -47,6 +47,8 @@ let keyword (s, pos) =
        | "end"          -> Parser.END pos
        | "print"        -> Parser.PRINT pos
        | "read"         -> Parser.READ pos
+       | "var"          -> Parser.VARDEC pos
+       | "global"       -> Parser.GLOBAL pos
        | _              -> Parser.VAR (s, pos)
 
 }
@@ -81,6 +83,11 @@ rule Token = parse
   | '<'                   { Parser.LTH     (getPos lexbuf) }
   | '('                   { Parser.LPAR    (getPos lexbuf) }
   | ')'                   { Parser.RPAR    (getPos lexbuf) }
+  | '{'                   { Parser.LCURLY  (getPos lexbuf) }
+  | '}'                   { Parser.RCURLY  (getPos lexbuf) }
+  | '['                   { Parser.LBRACKET (getPos lexbuf)}
+  | ']'                   { Parser.RBRACKET (getPos lexbuf)}
   | ';'                   { Parser.SEMIC   (getPos lexbuf) }
+  | ','                   { Parser.COMMA   (getPos lexbuf) }
   | eof                   { Parser.EOF     (getPos lexbuf) }
   | _                     { lexerError lexbuf "Illegal symbol in input" }

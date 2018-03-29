@@ -45,9 +45,9 @@ and initStatement (s: UntypedStatement,
       let varSetExp = initExp(e1, varSet)
       initStatList(s1, varSetExp)
 
-  | Call (id, pos)  -> // No need to do anything here
+  | Call (id, paramsList , pos)  -> // No need to do anything here
       varSet
-  | Uncall (id, pos)  -> // Same
+  | Uncall (id,paramList,  pos)  -> // Same
       varSet
 
   | Print(var, pos) ->
@@ -99,12 +99,8 @@ and initExp (e : UntypedExp,
          Set.union varSet1 varSet2
 
 
-let initializeProg(prog: UntypedProg) : VarSet =
-    let statements = fst prog
-    let procDecs = snd prog
-    let statVarSet = initStatList(statements ,Set.empty)
-    let procVarSet = initProcedures(procDecs, Set.empty)
-    Set.union statVarSet procVarSet
+let initializeStat(s : UntypedStatement List) : VarSet =
+    initStatList(s ,Set.empty)
 
 
 let checkVarIsNonZero(x, vtab) =

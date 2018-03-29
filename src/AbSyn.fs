@@ -11,8 +11,18 @@ type Value =
 (* Bool and Int are represented the same way *)
 type Type =
     Int
-  | Bool
 
+// a parameter is just a variable name
+type Param =
+    Param of string
+
+let getStringOfParam (Param(s)) = s
+
+type Declaration<'T> =
+       Declaration of string * Position
+
+
+let getStringOfDecl (Declaration(s,_)) = s
 
 type Exp<'T> =
     Constant of Value * Position
@@ -30,22 +40,24 @@ type Statement<'T> =
   | MinusAssignment of string * Exp<'T> * Position
   | If of Exp<'T> * Statement<'T> List * Statement<'T> List * Exp<'T> * Position
   | Repeat of Statement<'T> List * Exp<'T> * Position
-  | Call of string * Position
-  | Uncall of string * Position
+  | Call of string * Param List *  Position
+  | Uncall of string * Param List *  Position
   | Print of string * Position
   | Read of string * Position
 
-
 type ProcDec<'T> =
-    ProcDec of string * Statement<'T> List * Position
+    ProcDec of string * Param List * Declaration<'T> List * Statement<'T> List * Position
 
-let getProcName (ProcDec(name, _ , _)) = name
-let getProcStat (ProcDec(_, stat, _))  = stat
-let getProcPos  (ProcDec(_, _ , pos))  = pos
+let getProcName (ProcDec(name, _ , _ ,_, _)) = name
+let getProcParam (ProcDec(_, param , _, _ ,_))  = param
+let getProcDecl (ProcDec(_, _ , decl, _, _))  = decl
+let getProcStat (ProcDec(_, _ ,_, stat, _))  = stat
+let getProcPos  (ProcDec(_, _ ,_ ,_ , pos))  = pos
 
 type Prog<'T> =
-    Statement<'T> List * ProcDec<'T> list
+    Declaration<'T> List * Statement<'T> List * ProcDec<'T> list
 
+type UntypedDecl = Declaration<unit>
 type UntypedProg = Prog<unit>
 type UntypedProcDec = ProcDec<unit>
 type UntypedExp = Exp<unit>

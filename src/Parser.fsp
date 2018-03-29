@@ -25,10 +25,12 @@ let parse_error_rich =
 %token <(int*int)> UNTIL REPEAT
 %token <(int*int)> CALL UNCALL
 %token <(int*int)> PROCEDURE END
-%token <(int*int)> INT BOOL
+%token <(int*int)> INT
+%token <(int*int)> VARDEC LBRACKET RBRACKET GLOBAL
 %token <(int*int)> PLUS MINUS MULT DIV MOD
 %token <(int*int)> EQ LTH
 %token <(int*int)> LPAR RPAR SEMIC EOF
+%token <(int*int)> LCURLY RCURLY COMMA
 %token <(int*int)> READ PRINT
 %token <(int*int)> PASSIGN MASSIGN
 
@@ -42,7 +44,6 @@ let parse_error_rich =
 %type <AbSyn.UntypedProg> Prog
 %type <AbSyn.UntypedProcDec List> Procs
 %type <AbSyn.UntypedProcDec> Proc
-
 %type <AbSyn.UntypedStatement List> Statements
 %type <AbSyn.UntypedStatement> Statement
 %type <AbSyn.UntypedExp> Exp
@@ -50,15 +51,29 @@ let parse_error_rich =
 
 %%
 
-Prog      : Statements Procs  { $1, $2 }
+Prog      : Declarations SEMIC Statements Procs  { $1, $3, $4 }
 ;
+
+Declarations: VAR COMMA Declarations
+                               { Declaration (fst $1, snd $1) ::  $3 }
+            | VAR              { Declaration (fst $1, snd $1) :: []}
+            |                  { [] }
+;
+
 
 Procs     : PROCEDURE Proc  Procs  { $2 :: $3 }
           | PROCEDURE Proc         { $2 :: [] }
           | EOF                    { [] }
 ;
 
-Proc      : ID Statements END { ProcDec (fst $1, $2, snd $1) }
+Proc      : ID LPAR Params RPAR Declarations SEMIC Statements END
+                                                    { ProcDec (fst $1, $3, $5,  $7, snd $1) }
+          | ID LPAR RPAR Declarations SEMIC Statements END
+                                                    { ProcDec (fst $1, [], $4 , $6, snd $1)}
+;
+
+Params    : VAR COMMA Params { Param (fst $1) :: $3}
+          | VAR              { Param (fst $1) :: []}
 ;
 
 Statements : Statement SEMIC Statements {$1 :: $3}
@@ -70,14 +85,20 @@ Statement : VAR PASSIGN Exp
                   { PlusAssignment ((fst $1), $3, $2) }
           | VAR MASSIGN Exp
                   { MinusAssignment ((fst $1), $3, $2) }
-          | IF Exp THEN Statements ELSE Statements FI Exp %prec ifprec
-                  { If ($2, $4, $6, $8 , $1) }
-          | REPEAT Statements UNTIL Exp %prec whileprec
-                  { Repeat ($2, $4, $1)}
-          | CALL ID
-                  { Call (fst $2, $1)}
-          | UNCALL ID
-                  { Uncall (fst $2, $1)}
+          | IF LPAR Exp RPAR THEN LCURLY Statements RCURLY ELSE LCURLY Statements RCURLY FI LPAR Exp RPAR
+                  { If ($3, $7, $11, $15 , $1) }
+          | REPEAT LCURLY Statements RCURLY UNTIL LPAR Exp RPAR
+                  { Repeat ($3, $7, $1)}
+          | CALL ID LPAR Params RPAR
+                  { Call (fst $2, $4, $1)}
+          | CALL ID LPAR RPAR
+                  { Call (fst $2, [], $1)}
+
+          | UNCALL ID LPAR Params RPAR
+                  { Uncall (fst $2, $4, $1)}
+          | UNCALL ID LPAR RPAR
+                  { Uncall (fst $2, [], $1)}
+
           | PRINT LPAR VAR RPAR
                   { Print (fst $3, $1)}
           | READ LPAR VAR RPAR
@@ -85,7 +106,6 @@ Statement : VAR PASSIGN Exp
 ;
 
 Type      : INT        { AbSyn.Int }
-          | BOOL       { AbSyn.Bool }
 ;
 
 
@@ -98,6 +118,7 @@ Exp : NUM            { Constant (IntVal (fst $1), snd $1) }
     | Exp MOD   Exp  { Modulo($1, $3, $2)   }
     | Exp EQ    Exp  { Equal ($1, $3, $2)   }
     | Exp LTH   Exp  { Less ($1, $3, $2)    }
+    | LPAR Exp RPAR  { $2 }
 ;
 
 %%
