@@ -5,7 +5,7 @@ open AbSyn
 // Set containing variable names
 type VarSet = Set<string>
 
-let rec initProcedures(procedureList: UntypedProcDec List,
+let rec initProcedures(procedureList: ProcDec List,
                         varSet : VarSet) : VarSet =
     match procedureList with
         | [] -> varSet
@@ -14,7 +14,7 @@ let rec initProcedures(procedureList: UntypedProcDec List,
             let varSet' = initStatList(statList, varSet)
             initProcedures(ps, varSet')
 
-and initStatList(s: UntypedStatement List,
+and initStatList(s: Statement List,
                   varSet : VarSet) : VarSet =
   match s with
     | [] -> varSet
@@ -22,7 +22,7 @@ and initStatList(s: UntypedStatement List,
         let varSet' = initStatement(s, varSet)
         initStatList(ss, varSet')
 
-and initStatement (s: UntypedStatement,
+and initStatement (s: Statement,
                    varSet: VarSet): VarSet =
   match s with
   | PlusAssignment(id, e, pos)  ->
@@ -57,7 +57,7 @@ and initStatement (s: UntypedStatement,
       Set.add var varSet
   | _ -> failwith "WTF?"
 
-and initExp (e : UntypedExp,
+and initExp (e : Exp,
              varSet : VarSet) : VarSet =
    match e with
      | Constant(v,_)  -> varSet
@@ -106,7 +106,7 @@ and initExp (e : UntypedExp,
 
 
 
-let initializeStat(s : UntypedStatement List) : VarSet =
+let initializeStat(s : Statement List) : VarSet =
     initStatList(s ,Set.empty)
 
 

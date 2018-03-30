@@ -57,9 +57,8 @@ $(ReverseProgLib): src/ReverseProg.fs $(AbSynLib)
 $(CheckerLib): src/Checker.fs $(AbSynLib) $(SymTabLib)
 	$(fsharpc) -a src/Checker.fs -r $(AbSynLib) -r $(SymTabLib) -o $(CheckerLib)
 
-$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(InterpreterLib) $(ReverseProgLib) $(CheckerLib)
-	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib) -r $(CheckerLib) -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
-
+$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(InterpreterLib) $(ReverseProgLib)
+	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib)  -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
 
 
 clean:

@@ -47,7 +47,7 @@ let parse (s : string) =
 
 
 // Parse program from string.
-let parseString (s : string) : AbSyn.UntypedProg =
+let parseString (s : string) : AbSyn.Program =
     Parser.Prog Lexer.Token
     <| LexBuffer<_>.FromBytes (Encoding.UTF8.GetBytes s)
 
@@ -125,7 +125,6 @@ let bad () : int =
     0
 
 
-
 [<EntryPoint>]
 let main(paramList: string[]) : int =
   try
@@ -133,18 +132,22 @@ let main(paramList: string[]) : int =
     match paramList with
       | [|"-f"; file|]       ->
           Interpreter.evalProg (parseFromFile file)
+
       | [|"-r"; file|]       ->
-          printfn "REVERSE TREE: %A" (ReverseProg.inverseProgram (parseFromFile file))
           Interpreter.evalProg(ReverseProg.inverseProgram (parseFromFile file))
 
-          // printfn "NORMAL TREE: %A" ((parseFromFile file))
       | [|"-fr"; file|]      ->
           Interpreter.evalProg (parseFromFile file) |> ignore
           Interpreter.evalProg (ReverseProg.inverseProgram (parseFromFile file))
+
       | [|"-fa"; file|]      ->
+          printfn "Program: %A" (parseFromFile file)
           Interpreter.evalProg (parseFromFile file)
+
       | [|"-ra"; file|]      ->
+          printfn "Reversed program: %A" (ReverseProg.inverseProgram (parseFromFile file))
           Interpreter.evalProg (ReverseProg.inverseProgram (parseFromFile file))
+
       | [|"-i"|]             ->
           infLoop(Interpreter.evalProg)
           0

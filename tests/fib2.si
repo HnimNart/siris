@@ -1,3 +1,5 @@
+//WORKS
+
 x1, x2, n;
 read(n);
 call Fib(x1, x2, n);
@@ -16,11 +18,12 @@ procedure Fib(x1, x2, n)
   } fi (x1 == x2)
 end
 
+
+// The inverse program
 // read(x2);
 // read(x1);
 // call Fib2(x1,x2,n);
 // print(n);
-
 
 // procedure Fib2(x1, x2, n)
 //   if (x1 == x2) then {

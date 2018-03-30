@@ -27,7 +27,7 @@ let parse_error_rich =
 %token <(int*int)> CALL UNCALL
 %token <(int*int)> PROCEDURE END
 %token <(int*int)> INT
-%token <(int*int)> VARDEC LBRACKET RBRACKET GLOBAL
+%token <(int*int)> VARDEC LBRACKET RBRACKET
 %token <(int*int)> PLUS MINUS MULT DIV MOD
 %token <(int*int)> CEQ LTH OR EQ
 %token <(int*int)> LPAR RPAR SEMIC EOF
@@ -42,12 +42,12 @@ let parse_error_rich =
 %left MULT DIV MOD
 
 %start Prog
-%type <AbSyn.UntypedProg> Prog
-%type <AbSyn.UntypedProcDec List> Procs
-%type <AbSyn.UntypedProcDec> Proc
-%type <AbSyn.UntypedStatement List> Statements
-%type <AbSyn.UntypedStatement> Statement
-%type <AbSyn.UntypedExp> Exp
+%type <AbSyn.Program> Prog
+%type <AbSyn.ProcDec List> Procs
+%type <AbSyn.ProcDec> Proc
+%type <AbSyn.Statement List> Statements
+%type <AbSyn.Statement> Statement
+%type <AbSyn.Exp> Exp
 %type <AbSyn.Type> Type
 
 %%

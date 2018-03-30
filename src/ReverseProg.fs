@@ -12,25 +12,25 @@ let rec rev list acc=
     | head::tail  -> rev tail (head::acc)
 
 
-let rec inverseStatementList(statList : UntypedStatement List ):
-                             UntypedStatement List =
+let rec inverseStatementList(statList : Statement List ):
+                             Statement List =
     match statList with
         | [] -> []
         | ( s :: ss ) ->
             inverseStatement(s) :: inverseStatementList ss
 
-and inverseProcedures(p: UntypedProcDec) :
-                     UntypedProcDec =
+and inverseProcedures(p: ProcDec) :
+                     ProcDec =
     let (name, param ,statList, pos) = (getProcName p, getProcParam p , getProcStat p, getProcPos p)
     ProcDec(name, param, rev (inverseStatementList(statList)) [], pos)
 
 
-and invProcs(p: UntypedProcDec List) : UntypedProcDec List =
+and invProcs(p: ProcDec List) : ProcDec List =
     match p with
         | [] -> []
         | p' :: ps ->  inverseProcedures(p') :: invProcs(ps)
 
-and inverseStatement(s: UntypedStatement) =
+and inverseStatement(s: Statement) =
     match s with
     | PlusAssignment(id, e, pos) ->
         MinusAssignment(id, e, pos)
@@ -44,7 +44,7 @@ and inverseStatement(s: UntypedStatement) =
         let s1' = rev (inverseStatementList s1) []
         Repeat(s1', e1, pos)
     | Call (id, param, pos) ->
-        Call(id, param, pos)
+        Uncall(id, param, pos)
     | Uncall(id, param, pos) ->
         Call(id, param, pos)
     | Print(var, pos) ->
@@ -58,8 +58,8 @@ and inverseStatement(s: UntypedStatement) =
     | Swap(v1,v2, pos) ->
         Swap(v1, v2, pos)
 
-and inverseProgram(p : UntypedProg) : UntypedProg =
+and inverseProgram(p : Program) : Program =
    let (dec, statements, proc) = p
    let reverseStatements = rev (inverseStatementList statements)  []
-   let p' = invProcs(proc)
-   (dec, reverseStatements, p')
+   // let p' = invProcs(proc)
+   (dec, reverseStatements, proc)

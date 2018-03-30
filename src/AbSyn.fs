@@ -21,7 +21,6 @@ let getStringOfParam (Param(s)) = s
 type Declaration<'T> =
        Declaration of string * Position
 
-
 let getStringOfDecl (Declaration(s,_)) = s
 
 type Exp<'T> =
@@ -60,8 +59,8 @@ let getProcPos  (ProcDec(_, _ ,_ , pos))  = pos
 type Prog<'T> =
     Declaration<'T> List * Statement<'T> List * ProcDec<'T> list
 
-type UntypedDecl = Declaration<unit>
-type UntypedProg = Prog<unit>
-type UntypedProcDec = ProcDec<unit>
-type UntypedExp = Exp<unit>
-type UntypedStatement = Statement<unit>
+type Declaration = Declaration<unit>
+type Program = Prog<unit>
+type ProcDec = ProcDec<unit>
+type Exp = Exp<unit>
+type Statement = Statement<unit>
