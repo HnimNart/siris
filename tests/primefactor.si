@@ -1,0 +1,23 @@
+input, factors;
+read(input);
+call PrimeFactors(input, factors);
+print(input);
+print(factors);
+
+procedure PrimeFactors(n , factors)
+
+    repeat {
+    local i = 1;
+       repeat {
+         i += 1;
+       } until ( i == 1 || (n % i) == 0);
+
+       local tmp = n / i;
+        tmp <=> n;
+       delocal tmp = n * i;
+       print(i);
+       factors += 1;
+    delocal i = 0;
+
+    } until (n == 1 || factors == 0);
+end
