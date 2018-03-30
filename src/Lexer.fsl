@@ -49,6 +49,8 @@ let keyword (s, pos) =
        | "read"         -> Parser.READ pos
        | "var"          -> Parser.VARDEC pos
        | "global"       -> Parser.GLOBAL pos
+       | "local"        -> Parser.LOCAL pos
+       | "delocal"      -> Parser.DELOCAL pos
        | _              -> Parser.VAR (s, pos)
 
 }
@@ -74,12 +76,14 @@ rule Token = parse
                                        , getPos lexbuf)}
   | "+="                  { Parser.PASSIGN (getPos lexbuf) }
   | "-="                  { Parser.MASSIGN (getPos lexbuf) }
+  | "<=>"                 { Parser.SWAP    (getPos lexbuf ) }
   | "||"                  { Parser.OR      (getPos lexbuf) }
   | '+'                   { Parser.PLUS    (getPos lexbuf) }
   | '-'                   { Parser.MINUS   (getPos lexbuf) }
   | '*'                   { Parser.MULT    (getPos lexbuf) }
   | '/'                   { Parser.DIV     (getPos lexbuf) }
   | '%'                   { Parser.MOD     (getPos lexbuf) }
+  | "=="                  { Parser.CEQ     (getPos lexbuf) }
   | '='                   { Parser.EQ      (getPos lexbuf) }
   | '<'                   { Parser.LTH     (getPos lexbuf) }
   | '('                   { Parser.LPAR    (getPos lexbuf) }

@@ -75,11 +75,12 @@ let rec evalStatement(s: UntypedStatement,
       let (vtab', branch) =
           match e1Val with
           | IntVal v1  ->
-              if v1 = 0
+              printfn "v1 %A" v1
+              if v1 <> 0
               then
-                 (evalStatementList(s2, vtab, ptab, vSet), 0)
-              else
                  (evalStatementList(s1, vtab, ptab, vSet), 1)
+              else
+                 (evalStatementList(s2, vtab, ptab, vSet), 0)
 
       let e2Val = evalExp(e2, vtab', "")
       match e2Val with
@@ -91,6 +92,7 @@ let rec evalStatement(s: UntypedStatement,
            then
                vtab'
            else
+               printfn "B: %i, V2: %A" branch v2
                raise ( MyError("Exit condition does not match ", pos))
 
   | Repeat(s1, e1, pos)  ->
@@ -145,6 +147,22 @@ let rec evalStatement(s: UntypedStatement,
                                SymTab.bind var v' vtab
                | None -> raise(MyError("Argument "+var+" to Read not defined", pos))
        vtab'
+   | Local(var, e, pos) ->
+       let e' = evalExp(e, vtab, var)
+       SymTab.bind var e' vtab
+   | Delocal (var, e, pos) ->
+       SymTab.remove var vtab
+   | Swap(var1, var2, pos) ->
+       let val1 =
+           match SymTab.lookup var1 vtab with
+            | None -> raise (MyError("Variable" + var1 + " not defined", pos))
+            | Some v -> v
+       let val2 =
+           match SymTab.lookup var2 vtab with
+            | None -> raise (MyError("Variable" + var2 + " not defined", pos))
+            | Some v -> v
+       let vtab' = SymTab.bind var1 val2 vtab
+       SymTab.bind var2 val1 vtab'
 
 
 and callProcWithVtable (procdec: UntypedProcDec
@@ -153,7 +171,7 @@ and callProcWithVtable (procdec: UntypedProcDec
                       , ptab  : ProcTable
                       , pcall : Position
                       , vSet : VarSet ) =
-    let (ProcDec (pid, pargs, decl, statements, position)) = procdec
+    let (ProcDec (pid, pargs,  statements, position)) = procdec
 
     let evargs = List.map (fun e -> match SymTab.lookup (getStringOfParam e) vtab with
                                      | None -> raise( MyError("Parameter " + getStringOfParam e  +
@@ -164,32 +182,17 @@ and callProcWithVtable (procdec: UntypedProcDec
     let varPair  = List.zip aargs pargs
 
     let vtab' = SymTab.combine (bindParams (pargs, evargs, pid)) vtab
-    let vtabProc = List.fold (fun acc x -> SymTab.bind (getStringOfDecl x) constZero acc) (SymTab.empty()) decl
-    let vtab'' = SymTab.combine vtabProc vtab'
+    let retTable = evalStatementList(statements, vtab', ptab, vSet)
+    let n = match SymTab.lookup "tmp" retTable with
+              | None -> ()
+              | Some v -> printfn "N: %A" v
 
-    let retTable = evalStatementList(statements, vtab'', ptab, vSet)
-
-    // let tmep = match SymTab.lookup "x" retTable with
-                 // | None -> printfn "n not found"
-                 // | Some v -> printfn "Val of n is %A" v
 
     List.fold ( fun acc (act,form) -> match SymTab.lookup (getStringOfParam form) retTable with
                                         | None  -> SymTab.combine(SymTab.empty()) acc
                                         | Some v -> SymTab.bind (getStringOfParam act) v acc) vtab varPair
 
-    // let varSetProc = Checker.initializeStat(statements)
-    // // Update global variables
-    // let interSect = Set.intersect varSetProc vSet
-    // Set.fold( fun acc x -> match SymTab.lookup x retTable with
-    //                          | None   -> SymTab.combine (SymTab.empty()) acc
-    //                          | Some v -> SymTab.bind x v acc )
-    //                            vtab interSect
 
-
-
-
-
-    // let vTab : VarTable = Set.fold (fun acc x -> SymTab.bind x constZero acc) (SymTab.empty()) varSetProc
 and evalExp(e: UntypedExp,
             vtab: VarTable,
             lhsVariable: string): Value =
@@ -221,6 +224,7 @@ and evalExp(e: UntypedExp,
   | Times(e1, e2, pos)  ->
         let res1   = evalExp(e1, vtab , lhsVariable)
         let res2   = evalExp(e2, vtab , lhsVariable)
+
         match (res1, res2) with
           | (IntVal n1, IntVal n2)  -> IntVal (n1*n2)
 
@@ -256,12 +260,7 @@ and evalExp(e: UntypedExp,
         let r2 = evalExp(e2, vtab , lhsVariable)
         match (r1, r2) with
           | (IntVal  n1,    IntVal  n2  )  -> if n1 < n2 then IntVal(1) else IntVal(0)
-  | Less(e1, e2, pos)  ->
-        let r1 = evalExp(e1, vtab , lhsVariable)
-        let r2 = evalExp(e2, vtab , lhsVariable)
-        match (r1, r2) with
-          | (IntVal  n1,    IntVal  n2  )  -> if n1 < n2 then IntVal(1) else IntVal(0)
-   | Or (e1, e2, pos)  ->
+  | Or (e1, e2, pos)  ->
         let r1 = evalExp(e1, vtab , lhsVariable)
         let r2 = evalExp(e2, vtab , lhsVariable)
         match (r1, r2) with
@@ -272,9 +271,6 @@ and evalExp(e: UntypedExp,
                   | (0,1) -> IntVal(1)
                   | (0,0) -> IntVal(0)
                   |  _    -> raise( MyError("Expression does not contait to comparisons", pos))
-
-
-
 
 
 

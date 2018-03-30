@@ -55,6 +55,7 @@ and initStatement (s: UntypedStatement,
 
   | Read(var, pos) ->
       Set.add var varSet
+  | _ -> failwith "WTF?"
 
 and initExp (e : UntypedExp,
              varSet : VarSet) : VarSet =
@@ -97,6 +98,12 @@ and initExp (e : UntypedExp,
          let varSet1 = initExp(e1, varSet)
          let varSet2 = initExp(e2, varSet)
          Set.union varSet1 varSet2
+     | Or (e1, e2, pos)  ->
+         let varSet1 = initExp(e1, varSet)
+         let varSet2 = initExp(e2, varSet)
+         Set.union varSet1 varSet2
+
+
 
 
 let initializeStat(s : UntypedStatement List) : VarSet =

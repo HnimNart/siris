@@ -45,16 +45,17 @@ type Statement<'T> =
   | Uncall of string * Param List *  Position
   | Print of string * Position
   | Read of string * Position
-//  | Swap
+  | Local of string * Exp<'T> * Position
+  | Delocal of string * Exp<'T> * Position
+  | Swap of string * string * Position
 
 type ProcDec<'T> =
-    ProcDec of string * Param List * Declaration<'T> List * Statement<'T> List * Position
+    ProcDec of string * Param List * Statement<'T> List * Position
 
-let getProcName (ProcDec(name, _ , _ ,_, _)) = name
-let getProcParam (ProcDec(_, param , _, _ ,_))  = param
-let getProcDecl (ProcDec(_, _ , decl, _, _))  = decl
-let getProcStat (ProcDec(_, _ ,_, stat, _))  = stat
-let getProcPos  (ProcDec(_, _ ,_ ,_ , pos))  = pos
+let getProcName (ProcDec(name, _ , _ ,_)) = name
+let getProcParam (ProcDec(_, param ,  _ ,_))  = param
+let getProcStat (ProcDec(_, _ , stat, _))  = stat
+let getProcPos  (ProcDec(_, _ ,_ , pos))  = pos
 
 type Prog<'T> =
     Declaration<'T> List * Statement<'T> List * ProcDec<'T> list

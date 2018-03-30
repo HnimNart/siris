@@ -1,0 +1,38 @@
+n ,x1 ,x2, i;
+n += 10;
+x1 += 0;
+x2 += 1;
+call Fib(x1,x2, n);
+n -= 1;
+print(x1);
+print(x2);
+
+
+// read(x2);
+// read(x1);
+// n += 1;
+// call Fib2(x1,x2,n);
+// x2 -= 1;
+// x1 -= 0;
+// print(n);
+
+
+procedure Fib2(x1,x2,n)
+   local i = 1;
+   repeat {
+     i += 1;
+     x1 <=> x2;
+     x1 -= x2;
+   } until (i == 1 || i == n);
+   delocal i = n;
+end
+
+procedure Fib(x1, x2, n)
+   local i = n;
+   repeat {
+    x1 += x2;
+    x1 <=> x2;
+    i -= 1;
+   } until (i == 1 || i == n);
+   delocal i = 1;
+end

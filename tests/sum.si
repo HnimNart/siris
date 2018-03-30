@@ -1,0 +1,7 @@
+sum, i;
+read(i);
+repeat {
+  sum += i;
+  i -= 1
+} until (i = 10 || i = 0);
+print(sum);

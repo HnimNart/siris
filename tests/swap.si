@@ -1,0 +1,6 @@
+x,y;
+x += 3;
+y += 4;
+y <=> x;
+print(x);
+print(y);

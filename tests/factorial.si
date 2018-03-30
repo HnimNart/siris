@@ -1,38 +1,34 @@
-x, res, tmp;
+x, res;
 read(x);
-res += 1;
-tmp += res;
-// call Fact(x,res);
-call Fact2(x,res);
-print(res)
+call Fact(x, res);
+print(res);
+
+procedure Fact(n, retval)
+  retval += 1;
+  local i = n;
+  n -= i;
+  repeat {
+    local tmp = retval * i;
+         retval <=> tmp;
+    delocal tmp = retval/ i;
+    i -= 1;
+  } until (n == i || retval == 1);
+  delocal i = n;
+end
 
 // read(res);
-// uncall Fact2(x,res);
-// res -= 1;
+// call FactRev(x, res);
 // print(x);
 
-procedure Fact(n, res)
-    tmp;
-    tmp += res * (n-1);
-    if (n = 1) then {
-      tmp -= res * (n-1);
-      n -= 1;
-    } else {
-      res += tmp;
-      n -= 1;
-      call Fact(n , res)
-    } fi (n = 0)
-end
-
-
-procedure Fact2(n, res)
-
-    repeat {
-     i += n;
-
-
-
-
-    } until (i = 0)
-
-end
+// procedure FactRev(n, retval)
+//    local i = n;
+//    repeat {
+//      i += 1;
+//      local tmp = retval / i;
+//           retval <=> tmp;
+//      delocal tmp = retval * i;
+//    } until (n == i || retval == 1);
+//    n += i;
+//    delocal i = n;
+//    retval -= 1;
+// end
