@@ -24,8 +24,8 @@ ParserLib=bin/Parser.dll
 LexerLib=bin/Lexer.dll
 SymTabLib=bin/SymTab.dll
 InterpreterLib=bin/Interpreter.dll
+SubstituteLib=bin/Substitute.dll
 ReverseProgLib=bin/ReverseProg.dll
-CheckerLib=bin/Checker.dll
 SirisExe=bin/Siris.exe
 
 all: $(SirisExe)
@@ -48,19 +48,19 @@ $(LexerLib): $(LexerGen) $(AbSynLib) $(ParserLib)
 $(SymTabLib): src/SymTab.fs
 	$(fsharpc) -a src/SymTab.fs -o $(SymTabLib)
 
-$(InterpreterLib): src/Interpreter.fs $(AbSynLib) $(SymTabLib) $(CheckerLib) $(ReverseProgLib)
-	$(fsharpc) -a src/Interpreter.fs -r $(AbSynLib) -r $(SymTabLib) -r $(CheckerLib) -r $(ReverseProgLib) -o $(InterpreterLib)
+$(InterpreterLib): src/Interpreter.fs $(AbSynLib) $(SymTabLib) $(ReverseProgLib) $(SubstituteLib)
+	$(fsharpc) -a src/Interpreter.fs -r $(AbSynLib) -r $(SymTabLib) -r $(SubstituteLib) -r $(ReverseProgLib) -o $(InterpreterLib)
 
 $(ReverseProgLib): src/ReverseProg.fs $(AbSynLib)
 	$(fsharpc) -a src/ReverseProg.fs  -r $(AbSynLib) -o $(ReverseProgLib)
 
-$(CheckerLib): src/Checker.fs $(AbSynLib) $(SymTabLib)
-	$(fsharpc) -a src/Checker.fs -r $(AbSynLib) -r $(SymTabLib) -o $(CheckerLib)
+$(SubstituteLib): src/Substitute.fs $(AbSynLib)
+	$(fsharpc) -a src/Substitute.fs  -r $(AbSynLib) -o $(SubstituteLib)
 
-$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(InterpreterLib) $(ReverseProgLib)
-	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib)  -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
+$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(SubstituteLib) $(InterpreterLib) $(ReverseProgLib)
+	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib) -r $(SubstituteLib) -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
 
 
 clean:
 	rm -f bin/*.dll bin/*.fs bin/Parser.fsyacc.output bin/Parser.fsi bin/Siris.exe
-	rm -f tests/*.asm tests/*.out-testresult
+	rm -f tests/*.out-testresult

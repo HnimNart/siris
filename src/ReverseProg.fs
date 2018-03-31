@@ -5,12 +5,11 @@ open AbSyn
 
 // Reverses a list
 // Code from https://gist.github.com/thednaz/2897337
-let rec rev list acc=
+let rec rev list acc =
     match list with
     | []  -> acc
     | [x]  -> x::acc
     | head::tail  -> rev tail (head::acc)
-
 
 let rec inverseStatementList(statList : Statement List ):
                              Statement List =
@@ -18,17 +17,6 @@ let rec inverseStatementList(statList : Statement List ):
         | [] -> []
         | ( s :: ss ) ->
             inverseStatement(s) :: inverseStatementList ss
-
-and inverseProcedures(p: ProcDec) :
-                     ProcDec =
-    let (name, param ,statList, pos) = (getProcName p, getProcParam p , getProcStat p, getProcPos p)
-    ProcDec(name, param, rev (inverseStatementList(statList)) [], pos)
-
-
-and invProcs(p: ProcDec List) : ProcDec List =
-    match p with
-        | [] -> []
-        | p' :: ps ->  inverseProcedures(p') :: invProcs(ps)
 
 and inverseStatement(s: Statement) =
     match s with
@@ -61,5 +49,4 @@ and inverseStatement(s: Statement) =
 and inverseProgram(p : Program) : Program =
    let (dec, statements, proc) = p
    let reverseStatements = rev (inverseStatementList statements)  []
-   // let p' = invProcs(proc)
    (dec, reverseStatements, proc)

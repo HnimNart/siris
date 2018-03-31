@@ -37,14 +37,12 @@ let printPos (errString : string) : unit =
         if System.Char.IsDigit c
         then state1 s (p-1) (System.Char.ToString c)
         else state0 s (p-1)
-
     state0 errString (String.length errString - 1)
 
 (* Both lex and parse a program. *)
 let parse (s : string) =
     Parser.Prog Lexer.Token
     <| LexBuffer<_>.FromBytes (Encoding.UTF8.GetBytes s)
-
 
 // Parse program from string.
 let parseString (s : string) : AbSyn.Program =
@@ -120,6 +118,9 @@ let errorMessage (message : string) : Unit =
 let errorMessage' (errorType : string, message : string, line : int, col : int) =
     printfn "%s: %s at line %d, column %d" errorType message line col
 
+let errorMessageList (errorType :string, message: string, list) =
+    printfn "%s: %s: %A" errorType message list
+
 let bad () : int =
     errorMessage "Unknown command-line arguments. Usage:\n"
     0
@@ -136,19 +137,7 @@ let main(paramList: string[]) : int =
       | [|"-r"; file|]       ->
           Interpreter.evalProg(ReverseProg.inverseProgram (parseFromFile file))
 
-      | [|"-fr"; file|]      ->
-          Interpreter.evalProg (parseFromFile file) |> ignore
-          Interpreter.evalProg (ReverseProg.inverseProgram (parseFromFile file))
-
-      | [|"-fa"; file|]      ->
-          printfn "Program: %A" (parseFromFile file)
-          Interpreter.evalProg (parseFromFile file)
-
-      | [|"-ra"; file|]      ->
-          printfn "Reversed program: %A" (ReverseProg.inverseProgram (parseFromFile file))
-          Interpreter.evalProg (ReverseProg.inverseProgram (parseFromFile file))
-
-      | [|"-i"|]             ->
+      | [|"-if"|]             ->
           infLoop(Interpreter.evalProg)
           0
       | _                    -> 1
@@ -163,8 +152,12 @@ let main(paramList: string[]) : int =
         errorMessage' ("Lexical error", message, line, col)
         System.Environment.Exit 1
         1
+    | Interpreter.MyError' (message, list) ->
+        errorMessageList ("Termination error", message, list)
+        System.Environment.Exit 1
+        1
     | Interpreter.MyError (message, (line, col)) ->
-        errorMessage' ("Interpreter error", message, line, col)
+        errorMessage' ("Run time error", message, line, col)
         System.Environment.Exit 1
         1
     | FileProblem filename ->

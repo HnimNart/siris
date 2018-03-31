@@ -10,7 +10,8 @@ procedure Fact(n, retval)
   repeat {
     local tmp = retval * i;
          retval <=> tmp;
-    delocal tmp = retval/ i;
+         // print(retval);
+    delocal tmp = retval / i;
     i -= 1;
   } until (n == i || retval == 1);
   delocal i = n;

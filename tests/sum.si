@@ -1,7 +1,7 @@
-sum, i;
-read(i);
+sum, n;
+read(n);
 repeat {
-  sum += i;
-  i -= 1
-} until (i = 10 || i = 0);
+  sum += n;
+  n -= 1;
+} until (0 == n || sum == 0);
 print(sum);

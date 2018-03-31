@@ -22,6 +22,7 @@ type Declaration<'T> =
        Declaration of string * Position
 
 let getStringOfDecl (Declaration(s,_)) = s
+let getPosOfDecl (Declaration(_,p)) = p
 
 type Exp<'T> =
     Constant of Value * Position
@@ -34,6 +35,7 @@ type Exp<'T> =
   | Less of Exp<'T> * Exp<'T> * Position
   | Equal of Exp<'T> * Exp<'T> * Position
   | Or of Exp<'T> * Exp<'T> * Position
+  | And of Exp<'T> * Exp<'T> * Position
 
 type Statement<'T> =
     PlusAssignment of string * Exp<'T> * Position
@@ -53,7 +55,7 @@ type ProcDec<'T> =
 
 let getProcName (ProcDec(name, _ , _ ,_)) = name
 let getProcParam (ProcDec(_, param ,  _ ,_))  = param
-let getProcStat (ProcDec(_, _ , stat, _))  = stat
+let getProcStat (ProcDec(_ ,  _ , stat, _))  = stat
 let getProcPos  (ProcDec(_, _ ,_ , pos))  = pos
 
 type Prog<'T> =

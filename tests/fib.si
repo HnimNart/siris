@@ -1,4 +1,4 @@
-x1, x2, n;
+x1, x2, n ;
 read(n);
 call Fib(x1, x2, n);
 print(x1);

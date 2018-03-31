@@ -11,6 +11,12 @@ list.
 *)
 type SymTab<'a> = SymTab of (string * 'a) list
 
+let rec printSymTab (s) =
+       match s with
+        | [] -> ()
+        | s' :: ss -> printfn "%A" s'
+                      printSymTab ss
+
 let empty () = SymTab []
 
 let rec lookup n tab =
@@ -35,4 +41,3 @@ let combine (SymTab t1) (SymTab t2) = SymTab (t1 @ t2)
 let fromList l = SymTab l
 
 let toList (SymTab lst) = lst
-

@@ -1,0 +1,19 @@
+x, y;
+x += 3;
+y += 2;
+call F(x);
+print(y);
+
+procedure F(n)
+   local t = 1;
+   n -= 1;
+   call G(t);
+   print(t);
+   delocal t = 1;
+end
+
+procedure G(k)
+   y -= 1;
+   print(x);
+   print(k);
+end

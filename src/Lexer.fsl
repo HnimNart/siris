@@ -54,47 +54,45 @@ let keyword (s, pos) =
 
 }
 
-
 let whitespace = [' ' '\t' '\r']
-
+let newline = ['\n' '\012']
+let oneLineComment = "//" [^ '\n' '\012']*
+let integers = '0' | ['1'-'9']['0'-'9']*
+let varNames = ['a'-'z']['a'-'z''0'-'9' '_']*
+let procNames =  ['A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
 rule Token = parse
-    whitespace      { Token lexbuf } (* Whitespace*)
-  | ['\n' '\012']         { currentLine  <- currentLine + 1;
+    whitespace            { Token lexbuf }
+  | newline               { currentLine  <- currentLine + 1;
                             lineStartPos <-  lexbuf.StartPos.pos_cnum
-                                             :: lineStartPos;
-                            Token lexbuf } (* newlines *)
-  | "//" [^ '\n' '\012']* { Token lexbuf } (* comment *)
-
-  | '0' | ['1'-'9']['0'-'9']* { Parser.NUM
-                                  ( int (Encoding.UTF8.GetString(lexbuf.Lexeme))
-                                  , getPos lexbuf )
-                              }
-  | ['a'-'z']['a'-'z''0'-'9' '_']*
-                          { keyword ( Encoding.UTF8.GetString(lexbuf.Lexeme)
+                                             :: lineStartPos; Token lexbuf }
+  | oneLineComment        { Token lexbuf }
+  | integers              { Parser.NUM (int (Encoding.UTF8.GetString(lexbuf.Lexeme))
+                                    , getPos lexbuf )}
+  | varNames              { keyword ( Encoding.UTF8.GetString(lexbuf.Lexeme)
                                     , getPos lexbuf ) }
-  | ['A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
-                          { Parser.ID (Encoding.UTF8.GetString(lexbuf.Lexeme)
-                                       , getPos lexbuf)}
-  | "+="                  { Parser.PASSIGN (getPos lexbuf) }
-  | "-="                  { Parser.MASSIGN (getPos lexbuf) }
-  | "<=>"                 { Parser.SWAP    (getPos lexbuf ) }
-  | "||"                  { Parser.OR      (getPos lexbuf) }
-  | '+'                   { Parser.PLUS    (getPos lexbuf) }
-  | '-'                   { Parser.MINUS   (getPos lexbuf) }
-  | '*'                   { Parser.MULT    (getPos lexbuf) }
-  | '/'                   { Parser.DIV     (getPos lexbuf) }
-  | '%'                   { Parser.MOD     (getPos lexbuf) }
-  | "=="                  { Parser.CEQ     (getPos lexbuf) }
-  | '='                   { Parser.EQ      (getPos lexbuf) }
-  | '<'                   { Parser.LTH     (getPos lexbuf) }
-  | '('                   { Parser.LPAR    (getPos lexbuf) }
-  | ')'                   { Parser.RPAR    (getPos lexbuf) }
-  | '{'                   { Parser.LCURLY  (getPos lexbuf) }
-  | '}'                   { Parser.RCURLY  (getPos lexbuf) }
-  | '['                   { Parser.LBRACKET (getPos lexbuf)}
-  | ']'                   { Parser.RBRACKET (getPos lexbuf)}
-  | ';'                   { Parser.SEMIC   (getPos lexbuf) }
-  | ','                   { Parser.COMMA   (getPos lexbuf) }
-  | eof                   { Parser.EOF     (getPos lexbuf) }
+  | procNames             { Parser.ID (Encoding.UTF8.GetString(lexbuf.Lexeme)
+                                    , getPos lexbuf)}
+  | "+="                  { Parser.PASSIGN  (getPos lexbuf) }
+  | "-="                  { Parser.MASSIGN  (getPos lexbuf) }
+  | "<=>"                 { Parser.SWAP     (getPos lexbuf) }
+  | "||"                  { Parser.OR       (getPos lexbuf) }
+  | "&&"                  { Parser.AND      (getPos lexbuf) }
+  | '+'                   { Parser.PLUS     (getPos lexbuf) }
+  | '-'                   { Parser.MINUS    (getPos lexbuf) }
+  | '*'                   { Parser.MULT     (getPos lexbuf) }
+  | '/'                   { Parser.DIV      (getPos lexbuf) }
+  | '%'                   { Parser.MOD      (getPos lexbuf) }
+  | "=="                  { Parser.CEQ      (getPos lexbuf) }
+  | '='                   { Parser.EQ       (getPos lexbuf) }
+  | '<'                   { Parser.LTH      (getPos lexbuf) }
+  | '('                   { Parser.LPAR     (getPos lexbuf) }
+  | ')'                   { Parser.RPAR     (getPos lexbuf) }
+  | '{'                   { Parser.LCURLY   (getPos lexbuf) }
+  | '}'                   { Parser.RCURLY   (getPos lexbuf) }
+  | '['                   { Parser.LBRACKET (getPos lexbuf) }
+  | ']'                   { Parser.RBRACKET (getPos lexbuf) }
+  | ';'                   { Parser.SEMIC    (getPos lexbuf) }
+  | ','                   { Parser.COMMA    (getPos lexbuf) }
+  | eof                   { Parser.EOF      (getPos lexbuf) }
   | _                     { lexerError lexbuf "Illegal symbol in input" }
