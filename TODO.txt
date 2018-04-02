@@ -1,5 +1,7 @@
-refactor Substitute
-refactor CallProcWithVTable
+Check if local and delocal matches : DONE
+Write Siris.fsx finish
+Refactor Substitute : DONE
+Refactor CallProcWithVTable
 Rename stuff
 Tests
 GCD

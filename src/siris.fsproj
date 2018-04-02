@@ -31,15 +31,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Siris.fsx" />
     <Compile Include="AbSyn.fs" />
-    <Compile Include="Interpreter.fs" />
     <Compile Include="Lexer.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="SymTab.fs" />
     <Compile Include="SymTab.fsi" />
-    <Compile Include="Checker.fs" />
     <Compile Include="ReverseProg.fs" />
+    <Compile Include="Substitute.fs" />
+    <Compile Include="Interpreter.fs" />
+    <Compile Include="Siris.fsx" />
   </ItemGroup>
   <Import Project="$(FSharpTargetsPath)" />
 </Project>

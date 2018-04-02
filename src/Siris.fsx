@@ -1,4 +1,3 @@
-
 open System.Text
 open Microsoft.FSharp.Text.Lexing
 open Microsoft.FSharp.Text.Parsing
@@ -39,16 +38,10 @@ let printPos (errString : string) : unit =
         else state0 s (p-1)
     state0 errString (String.length errString - 1)
 
-(* Both lex and parse a program. *)
-let parse (s : string) =
-    Parser.Prog Lexer.Token
-    <| LexBuffer<_>.FromBytes (Encoding.UTF8.GetBytes s)
-
 // Parse program from string.
 let parseString (s : string) : AbSyn.Program =
     Parser.Prog Lexer.Token
     <| LexBuffer<_>.FromBytes (Encoding.UTF8.GetBytes s)
-
 
 let parseFromFile (filename : string)  =
   let txt = try  // read text from file given as parameter with added extension
@@ -76,40 +69,9 @@ let parseFromFile (filename : string)  =
     program
   else failwith "Invalid file name or empty file"
 
-
-let interpretSimple (str : string) : int =
-    let pgm = parseString str
-    Interpreter.evalProg pgm
-
 let reverseProg(str:string) =
     let pgm = parseString str
     ReverseProg.inverseProgram(pgm)
-
-let interpret (filename : string) : Unit =
-    let pgm = parseFromFile filename
-    let res = Interpreter.evalProg pgm
-    ()
-
-
-let infLoop(direction) =
-    let mutable running = true
-    while running do
-        printf "Input a program: "
-        try
-            let program = System.Console.ReadLine()
-            if program = "exit"
-            then
-                running <- false
-            else
-                printfn "Parse result: %A" (direction (parse program))
-                printfn "Syntax tree %A" (parse program)
-                printfn "Reverse Syntax tree %A" (ReverseProg.inverseProgram (parse program))
-                printfn "Reverse result: %A" (Interpreter.evalProg (reverseProg program))
-        with
-        | Failure msg -> printfn "%s" msg
-        | :? System.ArgumentNullException ->
-            running <- false
-
 
 // Print error message to the standard error channel.
 let errorMessage (message : string) : Unit =
@@ -119,30 +81,29 @@ let errorMessage' (errorType : string, message : string, line : int, col : int) 
     printfn "%s: %s at line %d, column %d" errorType message line col
 
 let errorMessageList (errorType :string, message: string, list) =
-    printfn "%s: %s: %A" errorType message list
+    printfn "%s: %s: " errorType message
+    List.map (fun (s,i) -> printfn "Variable %s has value %A" s i) list |> ignore
+
+
+let errorMessageList'(errorType:string, message:string, list) =
+    printfn "%s: %s: " errorType message
+    List.map (fun (s,(l,c)) -> printfn "Declaration of %s at line %d, column %d is unmatched" s l c) list |> ignore
 
 let bad () : int =
     errorMessage "Unknown command-line arguments. Usage:\n"
     0
 
-
 [<EntryPoint>]
 let main(paramList: string[]) : int =
   try
-  let retval =
-    match paramList with
-      | [|"-f"; file|]       ->
-          Interpreter.evalProg (parseFromFile file)
+  match paramList with
+    | [|"-f"; file|]       ->
+        Interpreter.evalProg (parseFromFile file)
 
-      | [|"-r"; file|]       ->
-          Interpreter.evalProg(ReverseProg.inverseProgram (parseFromFile file))
+    | [|"-r"; file|]       ->
+        Interpreter.evalProg(ReverseProg.inverseProgram (parseFromFile file))
+    | _                    -> bad()
 
-      | [|"-if"|]             ->
-          infLoop(Interpreter.evalProg)
-          0
-      | _                    -> 1
-
-  retval
   with
     | SyntaxError (line, col) ->
         errorMessage' ("Parse error", "Error", line, col)
@@ -154,6 +115,10 @@ let main(paramList: string[]) : int =
         1
     | Interpreter.MyError' (message, list) ->
         errorMessageList ("Termination error", message, list)
+        System.Environment.Exit 1
+        1
+    | Interpreter.MyError'' (message, list) ->
+        errorMessageList'("Static error", message, list)
         System.Environment.Exit 1
         1
     | Interpreter.MyError (message, (line, col)) ->
