@@ -1,0 +1,8 @@
+x;
+x += 1;
+if (x) then
+  x += 3;
+else
+  x += 1111;
+fi (!!x);
+print(x);

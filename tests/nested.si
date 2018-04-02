@@ -1,15 +1,21 @@
 x, y;
 x += 3;
 y += 2;
+local t = 1;
 call F(x);
 print(y);
+delocal t = 0;
 
 procedure F(n)
    local t = 1;
    n -= 1;
    call G(t);
-   print(t);
-   delocal t = 1;
+   delocal t = 0;
+   if (1) then
+     local tt = 0;
+     delocal tt = 0;
+   else
+   fi (1);
 end
 
 procedure G(k)

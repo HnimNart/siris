@@ -5,15 +5,15 @@ print(x1);
 print(x2);
 
 procedure Fib(x1, x2, n)
-  if (n == 0) then {
+  if (n == 0) then
     x1 += 1;
     x2 += 1;
-  } else {
+  else
     n -= 1;
     call Fib(x1, x2, n);
     x1 += x2;
     x1 <=> x2;
-  } fi (x1 == x2)
+  fi (x1 == x2)
 end
 
 

@@ -1,23 +1,21 @@
 a ,b;
-read(a);
-read(b);
-// a += 1071;
-// b += 462;
+// read(a);
+// read(b);
+a += 1071;
+b += 462;
+// Result should be 21
 call GCD(a,b);
 print(a);
 print(b);
 
-// gg is the number of iterations
-
 procedure GCD(a, b)
-    local i = 0;
-    repeat {
-      i += 1;
+    local tmp = b;
+    repeat
       local t = a % b;
       a <=> b;
       b <=> t;
-      delocal t = a * i % b ;
-    } until (b == 0 || i == 0);
-    b += i;
-    delocal i = b;
+      delocal t = a *  ;
+    until (b == 0 || tmp == b);
+    b += tmp;
+    delocal tmp = b;
 end
