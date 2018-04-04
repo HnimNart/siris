@@ -7,10 +7,12 @@ type Position = int * int
 (* Allowed values *)
 type Value =
     IntVal of int
+  // | ArrayVal of int list
 
-(* Bool and Int are represented the same way *)
+
 type Type =
     Int
+  // | Array of int
 
 // a parameter is just a variable name
 type Param =
@@ -19,10 +21,11 @@ type Param =
 let getStringOfParam (Param(s)) = s
 
 type Declaration<'T> =
-       Declaration of string * Position
+        IntVar of string  * Position
+      // | ArrayVar of string * Exp<'T> * Position
 
-let getStringOfDecl (Declaration(s,_)) = s
-let getPosOfDecl (Declaration(_,p)) = p
+let getStringOfIntVar (IntVar(s,_)) = s
+let getPosOfIntVar (IntVar(_,p)) = p
 
 type Exp<'T> =
     Constant of Value * Position
@@ -36,6 +39,7 @@ type Exp<'T> =
   | Equal of Exp<'T> * Exp<'T> * Position
   | Or of Exp<'T> * Exp<'T> * Position
   | And of Exp<'T> * Exp<'T> * Position
+  | Not of Exp<'T> * Position
 
 type Statement<'T> =
     PlusAssignment of string * Exp<'T> * Position

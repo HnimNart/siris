@@ -3,6 +3,21 @@ module Substitute
 open AbSyn
 type PairList = List<(Param*Param)>
 
+let counter : int ref = ref 0
+
+let newName var_name =
+    let _ = counter := !counter + 1
+    let n = string (!counter)
+    "_" + var_name + "_" + n + "_"
+
+let rec renameLocal(var:string,
+                    pairs:PairList) =
+    match pairs with
+        | []                                 -> var
+        | (s1, s2) :: _ when (getStringOfParam s2) = var  -> newName var
+        | _ :: pairss                        -> renameLocal(var, pairss)
+
+
 // Helper function to find a corresponding variable name from pairs
 // Return the same name if it's not found.
 let rec subVar(var: string, pairs: PairList): string =
@@ -23,64 +38,61 @@ let rec subParam(var: Param, pairs: PairList): Param =
 
 let rec subStatementList(ss: Statement List,
                          pairs: PairList) : Statement List =
-    match ss with
-        | [] -> []
-        | s :: ss' ->
-            subStatement(s, pairs) :: subStatementList(ss', pairs)
-
-and subStatement(s: Statement,
-                  pairs: PairList) : Statement =
-    match s with
-      | PlusAssignment(id, e, pos) ->
+      match ss with
+      | [] -> []
+      | PlusAssignment(id, e, pos) :: ss'->
           let e' = subVarsInExp(e, pairs)
           let newVar = subVar(id, pairs)
-          PlusAssignment(newVar, e', pos)
+          PlusAssignment(newVar, e', pos) :: subStatementList(ss', pairs)
 
-      | MinusAssignment(id, e, pos) ->
+      | MinusAssignment(id, e, pos) :: ss' ->
           let e' = subVarsInExp(e, pairs)
           let newVar = subVar(id, pairs)
-          MinusAssignment(newVar, e', pos)
+          MinusAssignment(newVar, e', pos) :: subStatementList(ss',pairs)
 
-      | If (e1, s1, s2, e2, pos) ->
+      | If (e1, s1, s2, e2, pos) :: ss' ->
          let s1' = subStatementList(s1, pairs)
          let s2' = subStatementList(s2, pairs)
          let e1' = subVarsInExp(e1, pairs)
          let e2' = subVarsInExp(e2, pairs)
-         If (e1', s1', s2', e2', pos)
+         If (e1', s1', s2', e2', pos) :: subStatementList(ss',pairs)
 
-      | Repeat(s1, e1, pos) ->
+      | Repeat(s1, e1, pos):: ss'  ->
          let s1' = subStatementList(s1, pairs)
          let e1' = subVarsInExp(e1, pairs)
-         Repeat(s1', e1', pos)
+         Repeat(s1', e1', pos):: subStatementList(ss',pairs)
 
-      | Call (id, param, pos) ->
+      | Call (id, param, pos):: ss'  ->
           let param' = List.map (fun x -> subParam(x, pairs)) param
-          Call(id, param', pos)
+          Call(id, param', pos):: subStatementList(ss',pairs)
 
-      | Uncall(id, param, pos) ->
+      | Uncall(id, param, pos):: ss'  ->
           let param' = List.map (fun x -> subParam( x, pairs)) param
-          Uncall(id, param', pos)
+          Uncall(id, param', pos):: subStatementList(ss',pairs)
 
-      | Print(var, pos) ->
+      | Print(var, pos):: ss'  ->
           let newVar = subVar(var, pairs)
-          Print(newVar, pos)
+          Print(newVar, pos):: subStatementList(ss',pairs)
 
-      | Read(var, pos) ->
+      | Read(var, pos):: ss'  ->
           let newVar = subVar(var, pairs)
-          Read(newVar, pos)
+          Read(newVar, pos):: subStatementList(ss',pairs)
 
-      | Local(var, e, pos) ->
+      | Local(var, e, pos):: ss'  ->
+          let var'   = renameLocal(var, pairs)
+          let pairs' = (Param(var), Param(var')) :: pairs
+          let e'     = subVarsInExp(e, pairs)
+          Local(var', e', pos) :: subStatementList(ss',pairs')
+
+      | Delocal(var, e,pos):: ss'  ->
           let e'   = subVarsInExp(e, pairs)
-          Local(var, e', pos)
+          let var' = subVar(var, pairs)
+          Delocal(var', e', pos):: subStatementList(ss',pairs)
 
-      | Delocal(var, e,pos) ->
-          let e'   = subVarsInExp(e, pairs)
-          Delocal(var , e', pos)
-
-      | Swap(v1, v2, pos) ->
+      | Swap(v1, v2, pos) :: ss'  ->
           let v1' = subVar (v1, pairs)
           let v2' = subVar (v2, pairs)
-          Swap(v1', v2', pos)
+          Swap(v1', v2', pos):: subStatementList(ss',pairs)
 
 and subVarsInExp(e: Exp,
                  pairs: PairList) : Exp =

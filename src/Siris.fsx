@@ -122,7 +122,7 @@ let main(paramList: string[]) : int =
         System.Environment.Exit 1
         1
     | Interpreter.MyError (message, (line, col)) ->
-        errorMessage' ("Run time error", message, line, col)
+        errorMessage' ("Interpreter error", message, line, col)
         System.Environment.Exit 1
         1
     | FileProblem filename ->

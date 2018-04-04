@@ -10,49 +10,66 @@ exception MyError'' of string * List<string*Position>
 
 type ProcTable = SymTab.SymTab<ProcDec>
 type VarTable = SymTab.SymTab<Value>
+type GlobalVars = List<string>
+type VarMapping = List<Param*Param>
+
+
+let mapVarToString(s:string, mappingList:VarMapping) : string =
+    let var = List.find (fun (v,v') -> getStringOfParam(v') = s) mappingList
+    getStringOfParam (fst var)
 
 let constZero = IntVal(0)
 
-// Checks if all variables in vSet are zero
+// Checks if all global variables are zero
 // Return a list of variables that are not zero
 let checkNonZeroVar(vTab, decl) =
     let isZero(x, vtab) =
       match SymTab.lookup x vtab with
         | Some (IntVal 0) -> []
         | Some (IntVal v) -> [(x,v)]
-        | _               -> raise(MyError("Variable" + x + "not found", (0,0) ))
-    List.fold (fun acc x -> acc @ isZero (x ,vTab)) [] decl
+        | _               ->
+            // This should never happen
+            raise(MyError("Variable " + x + " not found in symbol table", (0,0) ))
+    let vals = List.fold (fun acc x -> acc @ isZero (x ,vTab)) [] decl
+    if List.isEmpty vals then
+        0
+    else
+        raise (MyError'("The following variables are not zero at termination", vals))
 
 // Checking macthing local and delocal statemetns
 // Returns a list of variables that do not have macthing
 // deallocations in a statement block
-let rec checkStatement(statList: Statement List,
-                       stack : List<string*Position>) =
+let rec checkStatements(statList: Statement List,
+                        stack : List<string*Position>): unit =
     match statList with
-        | [] -> stack
+        | [] ->
+            if not stack.IsEmpty then
+                raise( MyError''("Unmatched local declaration", stack))
+                ()
         | s :: ss ->
             match s with
                 | Local(var, e, pos) ->
+                    if List.exists(fun (v,p) -> v = var ) stack
+                    then
+                        raise(MyError("Dublicate definition of local variable " + var, pos))
+
                     let stack' = (var, pos) :: stack
-                    checkStatement(ss, stack')
+                    checkStatements(ss, stack')
+
                 | Delocal(var, e, pos) ->
                     let stack' = List.filter (fun (s, p) -> s <> var) stack
-                    checkStatement(ss, stack')
-                | If (e1, s1, s2, e2, pos) ->
-                    let stack1 = checkStatement(s1, [])
-                    if not stack1.IsEmpty then
-                       raise( MyError''("Unmatched local declaration in If", stack1))
-                    let stack2 = checkStatement(s2, [])
-                    if not stack2.IsEmpty then
-                       raise( MyError''("Unmatched local declaration in If", stack2))
-                    checkStatement(ss, stack)
-                | Repeat (s, e, pos) ->
-                    let stack' = checkStatement(s, [])
-                    if not stack'.IsEmpty then
-                       raise( MyError''("Unmatched local declaration in Repeat", stack'))
-                    checkStatement(ss, stack)
+                    checkStatements(ss, stack')
 
-                | _ ->  checkStatement(ss, stack)
+                | If (e1, s1, s2, e2, pos) ->
+                    checkStatements(s1, [])
+                    checkStatements(s2, [])
+                    checkStatements(ss, stack)
+
+                | Repeat (s, e, pos) ->
+                    let stack' = checkStatements(s, [])
+                    checkStatements(ss, stack)
+
+                | _ ->  checkStatements(ss, stack)
 
 // Builds procedure symbol table
 // This is almost identical to the same function
@@ -68,9 +85,7 @@ let rec buildPtab(pdecs: ProcDec list): ProcTable =
     match SymTab.lookup pid ptab with
       | None         ->
          // Check that every local statement has a corresponding delocal
-         let check = checkStatement(getProcStat pdcl, [])
-         if not check.IsEmpty then
-            raise( MyError''("Unmatched local declaration", check))
+         checkStatements(getProcStat pdcl, [])
          SymTab.bind pid pdcl ptab
 
       | Some ofdecl  ->
@@ -80,7 +95,8 @@ let rec buildPtab(pdecs: ProcDec list): ProcTable =
 let rec evalStatement(s: Statement,
                       vtab: VarTable,
                       ptab: ProcTable,
-                      gSet: string list): VarTable =
+                      gSet: GlobalVars,
+                      varMap: VarMapping): VarTable =
   match s with
   | PlusAssignment(var, e, pos)  ->
       let eVal = evalExp(e, vtab, var)
@@ -108,18 +124,18 @@ let rec evalStatement(s: Statement,
           | IntVal v1  ->
               if v1 <> 0
               then
-                 (evalStatementList(s1, vtab, ptab, gSet), v1)
+                 (evalStatementList(s1, vtab, ptab, gSet, varMap), v1)
               else
-                 (evalStatementList(s2, vtab, ptab, gSet), v1)
-
+                 (evalStatementList(s2, vtab, ptab, gSet, varMap), v1)
       // Check that fi condition is the same
       match evalExp(e2, vtab', "") with
         | IntVal v2  ->
+
            if (v2 = 0 && cond = 0) || (v2 <> 0 && cond <> 0 )
            then
                vtab'
            else
-               raise ( MyError("If: Assertion in second condition does not match.\n" +
+               raise (MyError("fi assertion in second condition does not match.\n" +
                                "Second condition evaluated to " + (string v2) + "" , pos))
 
   | Repeat(s1, e1, pos)  ->
@@ -130,7 +146,7 @@ let rec evalStatement(s: Statement,
           then
               raise (MyError("Repeat: Condition false at entry", pos))
           else
-              repeatEval(s1, e1, vtab, ptab, gSet)
+              repeatEval(s1, e1, vtab, ptab, gSet,varMap)
 
   | Call (id, param, pos)  ->
       match SymTab.lookup id ptab with
@@ -162,7 +178,7 @@ let rec evalStatement(s: Statement,
              | IntVal v1 ->
                  if v1 <> 0
                  then
-                   raise( MyError("Argument "+ var + " in read not zero", pos))
+                   raise( MyError("Argument "+ (mapVarToString(var, varMap)) + " in read not zero", pos))
                  else
                    let value : int  = int(Console.ReadLine())
                    let v' = IntVal(value)
@@ -219,7 +235,6 @@ and evalExp(e: Exp,
   | Times(e1, e2, pos)  ->
         let res1   = evalExp(e1, vtab , lhsVar)
         let res2   = evalExp(e2, vtab , lhsVar)
-
         match (res1, res2) with
           | (IntVal n1, IntVal n2)  -> IntVal (n1*n2)
 
@@ -227,13 +242,16 @@ and evalExp(e: Exp,
         let res1   = evalExp(e1, vtab , lhsVar)
         let res2   = evalExp(e2, vtab , lhsVar)
         match (res1, res2) with
+          | (IntVal n1, IntVal 0)  -> raise(MyError("Division zero error", pos))
           | (IntVal n1, IntVal n2)  -> IntVal (n1/n2)
 
   | Modulo(e1, e2, pos)  ->
         let res1   = evalExp(e1, vtab , lhsVar)
         let res2   = evalExp(e2, vtab , lhsVar)
         match (res1, res2) with
+          | (IntVal n1, IntVal 0)  -> raise(MyError("Division zero error", pos))
           | (IntVal n1, IntVal n2)  -> IntVal (n1%n2)
+
   | Equal(e1, e2, pos)  ->
         let r1 = evalExp(e1, vtab , lhsVar)
         let r2 = evalExp(e2, vtab , lhsVar)
@@ -271,12 +289,13 @@ and evalExp(e: Exp,
                   | _                           -> IntVal(0)
   | Not (e, pos)  ->
         let r1 = evalExp(e, vtab , lhsVar)
+        if not (lhsVar = "") then
+            raise(MyError("Cannot use Not(!) in an assigment statement", pos))
         match r1 with
           | (IntVal n1)  ->
               match n1 with
                   | x when x = 0 -> IntVal(1)
                   | _            -> IntVal(1)
-
 
 // A function for Repeat statement after
 // the initial test that the condition is true
@@ -284,8 +303,10 @@ and repeatEval(statList: Statement List,
                e : Exp,
                vtab : VarTable,
                ptab : ProcTable,
-               gSet: string list) : VarTable =
-      let vtab' = evalStatementList(statList, vtab, ptab, gSet )
+               gSet: GlobalVars,
+               varMap: VarMapping ) : VarTable =
+
+      let vtab' = evalStatementList(statList, vtab, ptab, gSet, varMap)
       let condition =
           match evalExp(e, vtab', "") with
               | IntVal v  -> v
@@ -293,7 +314,7 @@ and repeatEval(statList: Statement List,
       if condition <> 0 then
           vtab'
       else
-          repeatEval(statList, e, vtab', ptab, gSet)
+          repeatEval(statList, e, vtab', ptab, gSet, varMap)
 
 // Executes a procedure call
 and callProcWithVtable (procdec: ProcDec,
@@ -301,7 +322,7 @@ and callProcWithVtable (procdec: ProcDec,
                         vtab  : VarTable,
                         ptab  : ProcTable,
                         poscall : Position,
-                        gSet : string List) =
+                        gSet : GlobalVars) =
 
     let (ProcDec (pid, pargs, statements, position)) = procdec
 
@@ -325,42 +346,33 @@ and callProcWithVtable (procdec: ProcDec,
     let varPair  = List.zip pargs aargs
     // Substitute formal parameters in body with actual
     let s' = Substitute.subStatementList(statements, varPair)
-    evalStatementList(s', vtab', ptab, gSet)
+    SymTab.combine (evalStatementList(s', vtab', ptab, gSet, varPair)) vtab
 
 // Recursively evaluates a list of statements
 and evalStatementList(sList : Statement List,
                       vtab : VarTable,
                       ptab : ProcTable,
-                      gSet : string List) : VarTable =
+                      gSet : GlobalVars,
+                      varMap: VarMapping) : VarTable =
     match sList with
         | []       -> vtab
         | s :: ss  ->
-            let vtab' = evalStatement(s, vtab, ptab,gSet)
-            evalStatementList(ss, vtab', ptab, gSet)
+            let vtab' = evalStatement(s, vtab, ptab,gSet,varMap)
+            evalStatementList(ss, vtab', ptab, gSet,varMap)
 
 // Evaluates a whole program (The main of the interpreter)
 and evalProg (prog: Program) : int =
 
     let (decl, statements, proc) = prog
     let ptab = buildPtab (proc)
-    let declStr = List.map (fun x -> getStringOfDecl x) decl
+    let declStr = List.map (fun x -> getStringOfIntVar x) decl
     // Build init symbol table with zeroes from list of 'globals'
     let vtab = List.fold (fun acc x -> SymTab.bind x constZero acc) (SymTab.empty()) declStr
-
     // Check that every local statement has a corresponding delocal
-    let check = checkStatement(statements, [])
-    if not check.IsEmpty then
-        raise( MyError''("Unmatched local declaration", check))
-
+    checkStatements(statements, [])
     if not (declStr = List.distinct declStr) then
         raise (MyError("Dublicate variables in declaration", (0,0)))
-
     // Run 'main' statements
-    let vtab' = evalStatementList (statements, vtab, ptab, declStr)
-
+    let vtab' = evalStatementList (statements, vtab, ptab, declStr, [])
     // Check if all variables are zero
-    let endVals = checkNonZeroVar(vtab', declStr)
-    if List.isEmpty endVals then
-        0
-    else
-        raise (MyError'("The following variables are not zero at termination", endVals))
+    checkNonZeroVar(vtab', declStr)
