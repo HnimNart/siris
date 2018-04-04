@@ -1,18 +1,11 @@
 module AbSyn
 
-
 (* position: (line, column) *)
 type Position = int * int
 
 (* Allowed values *)
 type Value =
     IntVal of int
-  // | ArrayVal of int list
-
-
-type Type =
-    Int
-  // | Array of int
 
 // a parameter is just a variable name
 type Param =
@@ -22,7 +15,6 @@ let getStringOfParam (Param(s)) = s
 
 type Declaration<'T> =
         IntVar of string  * Position
-      // | ArrayVar of string * Exp<'T> * Position
 
 let getStringOfIntVar (IntVar(s,_)) = s
 let getPosOfIntVar (IntVar(_,p)) = p

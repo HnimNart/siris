@@ -38,6 +38,7 @@
     <Compile Include="SymTab.fsi" />
     <Compile Include="ReverseProg.fs" />
     <Compile Include="Substitute.fs" />
+    <Compile Include="StaticChecker.fs" />
     <Compile Include="Interpreter.fs" />
     <Compile Include="Siris.fsx" />
   </ItemGroup>

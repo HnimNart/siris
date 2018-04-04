@@ -1,8 +1,4 @@
-# Makefile for compiling and cleaning up the F# Fasto compiler.
-#
-# Completely non-clever explicit make targets for every file in the
-# Fasto compiler.
-
+# Makefile for compiling and cleaning up the Siris compiler.
 # Operating system intended to make OSX work, when running mkbundle
 OS=$(shell uname -s)
 ifeq ($(OS),Darwin)
@@ -23,6 +19,7 @@ AbSynLib=bin/AbSyn.dll
 ParserLib=bin/Parser.dll
 LexerLib=bin/Lexer.dll
 SymTabLib=bin/SymTab.dll
+StaticCheckerLib=bin/StaticChecker.dll
 InterpreterLib=bin/Interpreter.dll
 SubstituteLib=bin/Substitute.dll
 ReverseProgLib=bin/ReverseProg.dll
@@ -48,17 +45,21 @@ $(LexerLib): $(LexerGen) $(AbSynLib) $(ParserLib)
 $(SymTabLib): src/SymTab.fs
 	$(fsharpc) -a src/SymTab.fs -o $(SymTabLib)
 
-$(InterpreterLib): src/Interpreter.fs $(AbSynLib) $(SymTabLib) $(ReverseProgLib) $(SubstituteLib)
-	$(fsharpc) -a src/Interpreter.fs -r $(AbSynLib) -r $(SymTabLib) -r $(SubstituteLib) -r $(ReverseProgLib) -o $(InterpreterLib)
-
 $(ReverseProgLib): src/ReverseProg.fs $(AbSynLib)
 	$(fsharpc) -a src/ReverseProg.fs  -r $(AbSynLib) -o $(ReverseProgLib)
 
 $(SubstituteLib): src/Substitute.fs $(AbSynLib)
 	$(fsharpc) -a src/Substitute.fs  -r $(AbSynLib) -o $(SubstituteLib)
 
-$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(SubstituteLib) $(InterpreterLib) $(ReverseProgLib)
-	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib) -r $(SubstituteLib) -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
+$(StaticCheckerLib): src/StaticChecker.fs $(AbSynLib) $(SymTabLib)
+	$(fsharpc) -a src/StaticChecker.fs  -r $(AbSynLib) -r $(SymTabLib) -o $(StaticCheckerLib)
+
+$(InterpreterLib): src/Interpreter.fs $(AbSynLib) $(SymTabLib) $(SubstituteLib) $(StaticCheckerLib)  $(ReverseProgLib)
+	$(fsharpc) -a src/Interpreter.fs -r $(AbSynLib) -r $(SymTabLib) -r $(SubstituteLib) -r $(StaticCheckerLib) -r $(ReverseProgLib) -o $(InterpreterLib)
+
+$(SirisExe): src/Siris.fsx $(AbSynLib) $(ParserLib) $(LexerLib) $(SymTabLib) $(SubstituteLib) $(StaticCheckerLib) $(InterpreterLib) $(ReverseProgLib)
+	$(fsharpc) src/Siris.fsx -o $(SirisExe) -r $(AbSynLib) -r $(SymTabLib) -r $(ParserLib) -r $(LexerLib)  -r $(StaticCheckerLib)  -r $(SubstituteLib) -r $(InterpreterLib) -r $(ReverseProgLib) -r $(powerpack) -o $(SirisExe)
+	 
 
 
 clean:

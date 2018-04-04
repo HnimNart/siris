@@ -113,16 +113,20 @@ let main(paramList: string[]) : int =
         errorMessage' ("Lexical error", message, line, col)
         System.Environment.Exit 1
         1
-    | Interpreter.MyError' (message, list) ->
+    | StaticChecker.TerminationException (message, list) ->
         errorMessageList ("Termination error", message, list)
         System.Environment.Exit 1
         1
-    | Interpreter.MyError'' (message, list) ->
+    | StaticChecker.StaticListException (message, list) ->
         errorMessageList'("Static error", message, list)
         System.Environment.Exit 1
         1
-    | Interpreter.MyError (message, (line, col)) ->
-        errorMessage' ("Interpreter error", message, line, col)
+    | StaticChecker.StaticException(message, (line, col)) ->
+        errorMessage' ("Static error", message, line, col)
+        System.Environment.Exit 1
+        1
+    | Interpreter.InterpreterErr(message, (line, col)) ->
+        errorMessage' ("Run time error", message, line, col)
         System.Environment.Exit 1
         1
     | FileProblem filename ->

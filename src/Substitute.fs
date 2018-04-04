@@ -1,6 +1,7 @@
 module Substitute
 
 open AbSyn
+// List of mappings from formal to actual parameters
 type PairList = List<(Param*Param)>
 
 let counter : int ref = ref 0
@@ -10,6 +11,9 @@ let newName var_name =
     let n = string (!counter)
     "_" + var_name + "_" + n + "_"
 
+// Renames a local if there is a conflict with
+// actual parameters. If not it just returns the same
+// variable name
 let rec renameLocal(var:string,
                     pairs:PairList) =
     match pairs with
@@ -20,14 +24,12 @@ let rec renameLocal(var:string,
 
 // Helper function to find a corresponding variable name from pairs
 // Return the same name if it's not found.
+// If the variable is not found then we don't need to map it.
 let rec subVar(var: string, pairs: PairList): string =
     match pairs with
         | []                          -> var // Not found in list
-        | (s1,s2) :: pairs'           ->
-            if getStringOfParam(s1) = var then
-                getStringOfParam(s2)
-            else
-                subVar(var, pairs')
+        | (s1,s2) :: pairs' when getStringOfParam(s1) = var   -> getStringOfParam(s2)
+        | _ :: pairs'                 -> subVar(var, pairs')
 
 // Like above just for param types.
 let rec subParam(var: Param, pairs: PairList): Param =
@@ -36,6 +38,8 @@ let rec subParam(var: Param, pairs: PairList): Param =
         | (s1,s2) :: pairs' when var = s1 -> s2
         | s :: pairs'                     -> subParam(var, pairs')
 
+// Substitutes formal parameters with actual
+// in a list of statements
 let rec subStatementList(ss: Statement List,
                          pairs: PairList) : Statement List =
       match ss with
@@ -60,23 +64,23 @@ let rec subStatementList(ss: Statement List,
       | Repeat(s1, e1, pos):: ss'  ->
          let s1' = subStatementList(s1, pairs)
          let e1' = subVarsInExp(e1, pairs)
-         Repeat(s1', e1', pos):: subStatementList(ss',pairs)
+         Repeat(s1', e1', pos) :: subStatementList(ss',pairs)
 
       | Call (id, param, pos):: ss'  ->
           let param' = List.map (fun x -> subParam(x, pairs)) param
-          Call(id, param', pos):: subStatementList(ss',pairs)
+          Call(id, param', pos) :: subStatementList(ss',pairs)
 
       | Uncall(id, param, pos):: ss'  ->
           let param' = List.map (fun x -> subParam( x, pairs)) param
-          Uncall(id, param', pos):: subStatementList(ss',pairs)
+          Uncall(id, param', pos) :: subStatementList(ss',pairs)
 
       | Print(var, pos):: ss'  ->
           let newVar = subVar(var, pairs)
-          Print(newVar, pos):: subStatementList(ss',pairs)
+          Print(newVar, pos) :: subStatementList(ss',pairs)
 
       | Read(var, pos):: ss'  ->
           let newVar = subVar(var, pairs)
-          Read(newVar, pos):: subStatementList(ss',pairs)
+          Read(newVar, pos) :: subStatementList(ss',pairs)
 
       | Local(var, e, pos):: ss'  ->
           let var'   = renameLocal(var, pairs)
@@ -87,12 +91,12 @@ let rec subStatementList(ss: Statement List,
       | Delocal(var, e,pos):: ss'  ->
           let e'   = subVarsInExp(e, pairs)
           let var' = subVar(var, pairs)
-          Delocal(var', e', pos):: subStatementList(ss',pairs)
+          Delocal(var', e', pos) :: subStatementList(ss',pairs)
 
       | Swap(v1, v2, pos) :: ss'  ->
           let v1' = subVar (v1, pairs)
           let v2' = subVar (v2, pairs)
-          Swap(v1', v2', pos):: subStatementList(ss',pairs)
+          Swap(v1', v2', pos) :: subStatementList(ss',pairs)
 
 and subVarsInExp(e: Exp,
                  pairs: PairList) : Exp =

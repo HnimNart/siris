@@ -49,7 +49,6 @@ let parse_error_rich =
 %type <AbSyn.Statement List> Statements
 %type <AbSyn.Statement> Statement
 %type <AbSyn.Exp> Exp
-%type <AbSyn.Type> Type
 
 %%
 
@@ -111,10 +110,6 @@ Statement : VAR PASSIGN Exp
           | VAR SWAP VAR
                    { Swap (fst $1, fst $3, $2)}
 ;
-
-Type      : INT        { AbSyn.Int }
-;
-
 
 Exp : NUM            { Constant (IntVal (fst $1), snd $1) }
     | VAR            { Var $1 }
