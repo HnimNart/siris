@@ -15,6 +15,7 @@ procedure F(n)
      local tt = 0;
      delocal tt = 0;
    else
+     n += 1;
    fi (1);
 end
 

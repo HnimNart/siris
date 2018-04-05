@@ -45,8 +45,8 @@ $(LexerLib): $(LexerGen) $(AbSynLib) $(ParserLib)
 $(SymTabLib): src/SymTab.fs
 	$(fsharpc) -a src/SymTab.fs -o $(SymTabLib)
 
-$(ReverseProgLib): src/ReverseProg.fs $(AbSynLib)
-	$(fsharpc) -a src/ReverseProg.fs  -r $(AbSynLib) -o $(ReverseProgLib)
+$(ReverseProgLib): src/Reverser.fs $(AbSynLib)
+	$(fsharpc) -a src/Reverser.fs  -r $(AbSynLib) -o $(ReverseProgLib)
 
 $(SubstituteLib): src/Substitute.fs $(AbSynLib)
 	$(fsharpc) -a src/Substitute.fs  -r $(AbSynLib) -o $(SubstituteLib)

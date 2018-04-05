@@ -21,7 +21,7 @@ procedure Fib(x1, x2, n)
     call Fib(x1, x2, n);
     x1 += x2;
     x1 <=> x2;
-  fi (x1 == x2)
+  fi (x1 == x2);
 end
 
 

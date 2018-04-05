@@ -2,6 +2,6 @@ sum, n;
 read(n);
 repeat
   sum += n;
-  n -= 1
+  n -= 1;
 until (0 == n || sum == 0);
 print(sum);
