@@ -79,8 +79,7 @@ Params    : VAR COMMA Params { Param (fst $1) :: $3}
 ;
 
 Statements : Statement SEMIC Statements {$1 :: $3}
-           | Statement                  {$1 :: []}
-           |                            { [] }
+           | Statement SEMIC            {$1 :: []}
 ;
 
 Statement : VAR PASSIGN Exp

@@ -10,14 +10,16 @@ procedure PrimeFactors(n , factors)
     local i = 1;
        repeat
          i += 1;
-        until ( i == 1 || (n % i) == 0);
+       until ( i == 1 || (n % i) == 0);
 
-       local tmp = n / i;
-        tmp <=> n;
-       delocal tmp = n * i;
-       print(i);
-       factors += 1;
-       delocal i = 0;
+    // Decrement n to n / i
+    local tmp = n / i;
+    tmp <=> n;
+    delocal tmp = n * i;
+
+    print(i);
+    factors += 1;
+    delocal i = 0;
 
     until (n == 1 || factors == 0);
 end
