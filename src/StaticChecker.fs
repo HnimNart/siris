@@ -7,7 +7,7 @@ exception StaticException of string * Position
 
 // Checks if all global variables are zero
 // Return a list of variables that are not zero
-let checkNonZeroVar(vTab, decl) =
+let checkVarsIsZero(vTab, decl) =
     let isZero(x, vtab) =
       match SymTab.lookup x vtab with
         | Some (IntVal 0) -> []
@@ -61,11 +61,13 @@ let rec checkLhsVar(e: Exp, lhsvar:string):unit =
 // Performs static checks of statements
 // 1. Check for matching local and delocal statemetns
 // 2. Dublicate definition for local variables
+// E.g. from formal paramters or local declarations
 // 3. Check that expression does not contain lhs variable
 // Returns a list of variables that do not have macthing
 // deallocations in a statement block
 let rec checkStatements(statList: Statement List,
-                        stack : List<string*Position>): unit =
+                        stack : List<string*Position>,
+                        formalParams : List<string>): unit =
     match statList with
         | [] ->
             if not stack.IsEmpty then
@@ -77,25 +79,29 @@ let rec checkStatements(statList: Statement List,
                     if List.exists(fun (v,p) -> v = var ) stack
                     then
                         raise(StaticException("Dublicate definition of local variable " + var, pos))
-
+                    if List.exists(fun (v) -> v = var) formalParams
+                    then
+                        raise(StaticException("Local variable name is also a formal paramters", pos))
                     let stack' = (var, pos) :: stack
-                    checkStatements(ss, stack')
+                    checkStatements(ss, stack', formalParams)
 
                 | Delocal(var, e, pos) ->
+                    if not (List.exists (fun (s,p) -> var = s) stack) then
+                        raise(StaticException("No matching local of delocal", pos))
                     let stack' = List.filter (fun (s, p) -> s <> var) stack
-                    checkStatements(ss, stack')
+                    checkStatements(ss, stack', formalParams)
 
                 | If (e1, s1, s2, e2, pos) ->
-                    checkStatements(s1, [])
-                    checkStatements(s2, [])
-                    checkStatements(ss, stack)
+                    checkStatements(s1, [], formalParams)
+                    checkStatements(s2, [], formalParams)
+                    checkStatements(ss, stack, formalParams)
 
                 | Repeat (s, e, pos) ->
-                    let stack' = checkStatements(s, [])
-                    checkStatements(ss, stack)
+                    let stack' = checkStatements(s, [], formalParams)
+                    checkStatements(ss, stack, formalParams)
                 | PlusAssignment(var, e, pos) ->
                     checkLhsVar(e, var)
                 | MinusAssignment(var, e, pos) ->
                     checkLhsVar(e, var)
 
-                | _ ->  checkStatements(ss, stack)
+                | _ ->  checkStatements(ss, stack, formalParams)

@@ -24,6 +24,7 @@ and inverseStatement(s: Statement) =
         MinusAssignment(id, e, pos)
     | MinusAssignment(id, e, pos) ->
         PlusAssignment(id, e, pos)
+
     | If (e1, s1, s2, e2, pos) ->
         let s1' = rev (inverseStatementList s1) []
         let s2' = rev (inverseStatementList s2) []

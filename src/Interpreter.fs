@@ -15,6 +15,10 @@ let mapVarToString(s:string, mappingList:VarMapping) : string =
     let var = List.find (fun (v,v') -> getStringOfParam(v') = s) mappingList
     getStringOfParam (fst var)
 
+
+let isUniqueParam list = list = List.distinct list
+
+
 let constZero = IntVal(0)
 
 // Builds procedure symbol table
@@ -27,11 +31,14 @@ let rec buildPtab(pdecs: ProcDec list): ProcTable =
     (* Bind the user-defined procedures, in reverse order. *)
     let pid   = getProcName pdcl
     let pos   = getProcPos pdcl
+    let param = List.map (fun x -> (getStringOfParam x)) (getProcParam pdcl)
+    if not (isUniqueParam param)  then
+        raise(InterpreterErr("Parameters in " + pid + " does not have unique names", pos))
     let ptab  = buildPtab ps
     match SymTab.lookup pid ptab with
       | None         ->
          // Check that every local statement has a corresponding delocal
-         StaticChecker.checkStatements(getProcStat pdcl, [])
+         StaticChecker.checkStatements(getProcStat pdcl, [], param)
          SymTab.bind pid pdcl ptab
 
       | Some ofdecl  ->
@@ -308,10 +315,10 @@ and evalProg (prog: Program) : int =
     // Build init symbol table with zeroes from list of 'globals'
     let vtab = List.fold (fun acc x -> SymTab.bind x constZero acc) (SymTab.empty()) declStr
     // Check static properties
-    StaticChecker.checkStatements(statements, [])
+    StaticChecker.checkStatements(statements, [], declStr)
     if not (declStr = List.distinct declStr) then
         raise (InterpreterErr("Dublicate variables in declaration", (0,0)))
     // Run 'main' statements
     let vtab' = evalStatementList (statements, vtab, ptab, declStr, [])
     // Check if all variables are zero
-    StaticChecker.checkNonZeroVar(vtab', declStr)
+    StaticChecker.checkVarsIsZero(vtab', declStr)

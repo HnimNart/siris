@@ -5,15 +5,12 @@ print(res);
 
 procedure Fact(n, retval)
   retval += 1;
-  local i = n;
-  n -= i;
   repeat
-    local tmp = retval * i;
+    local tmp = retval * n;
          retval <=> tmp;
-    delocal tmp = retval / i;
-    i -= 1;
-  until (n == i || retval == 1);
-  delocal i = n;
+    delocal tmp = retval / n;
+    n -= 1;
+  until (n == 0 || retval == 1);
 end
 
 // read(res);

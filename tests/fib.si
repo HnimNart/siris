@@ -1,8 +1,16 @@
+// Given n the program computes the nth-1 and nth
+// fibonacci numbers when run forwards.
+// In reverse given xth, xth-1 the program outputs n
+// The program was taken from
+// https://ac.els-cdn.com/S1571066110000204/1-s2.0-S1571066110000204-main.pdf?_tid=c8dfdf77-41dd-4a7b-a2fe-db8d6ffd423a&acdnat=1522854576_4eed247ef4eae1344f4a0512f3d7f6ae
+
 x1, x2, n ;
 read(n);
 call Fib(x1, x2, n);
 print(x1);
 print(x2);
+
+
 
 procedure Fib(x1, x2, n)
   if (n == 0) then
