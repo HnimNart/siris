@@ -8,7 +8,6 @@ exception InterpreterErr of string * Position
 
 type ProcTable = SymTab.SymTab<ProcDec>
 type VarTable = SymTab.SymTab<Value>
-type GlobalVars = List<string>
 type VarMapping = List<Param*Param>
 
 let mapVarToString(s:string, mappingList:VarMapping) : string =
@@ -48,7 +47,6 @@ let rec buildPtab(pdecs: ProcDec list): ProcTable =
 let rec evalStatement(s: Statement,
                       vtab: VarTable,
                       ptab: ProcTable,
-                      gSet: GlobalVars,
                       varMap: VarMapping): VarTable =
   match s with
   | PlusAssignment(var, e, pos)  ->
@@ -77,9 +75,9 @@ let rec evalStatement(s: Statement,
           | IntVal v1  ->
               if v1 <> 0
               then
-                 (evalStatementList(s1, vtab, ptab, gSet, varMap), v1)
+                 (evalStatementList(s1, vtab, ptab,  varMap), v1)
               else
-                 (evalStatementList(s2, vtab, ptab, gSet, varMap), v1)
+                 (evalStatementList(s2, vtab, ptab,  varMap), v1)
       // Check that fi condition is the same
       match evalExp(e2, vtab') with
         | IntVal v2  ->
@@ -99,19 +97,19 @@ let rec evalStatement(s: Statement,
           then
               raise (InterpreterErr("Repeat: Condition false at entry", pos))
           else
-              repeatEval(s1, e1, vtab, ptab, gSet,varMap)
+              repeatEval(s1, e1, vtab, ptab, varMap)
 
   | Call (id, param, pos)  ->
       match SymTab.lookup id ptab with
         | None    -> raise( InterpreterErr("Call to undefined procedure: " + id, pos))
-        | Some p  -> callProcWithVtable (p, param, vtab, ptab, pos, gSet)
+        | Some p  -> callProcWithVtable (p, param, vtab, ptab, pos)
 
   | Uncall (id, param, pos)  ->
       match SymTab.lookup id ptab with
         | None    -> raise( InterpreterErr("Uncall to undefined procedure: " + id, pos))
         | Some (ProcDec(id, parg, stat, pos))  ->
             let iStat = ReverseProg.inverseStatementList (ReverseProg.rev stat [])
-            callProcWithVtable (ProcDec(id, parg, iStat, pos), param , vtab, ptab, pos, gSet)
+            callProcWithVtable (ProcDec(id, parg, iStat, pos), param , vtab, ptab, pos)
 
   | Print(var, pos) ->
       let value =
@@ -250,10 +248,9 @@ and repeatEval(statList: Statement List,
                e : Exp,
                vtab : VarTable,
                ptab : ProcTable,
-               gSet: GlobalVars,
                varMap: VarMapping ) : VarTable =
 
-      let vtab' = evalStatementList(statList, vtab, ptab, gSet, varMap)
+      let vtab' = evalStatementList(statList, vtab, ptab,  varMap)
       let condition =
           match evalExp(e, vtab') with
               | IntVal v  -> v
@@ -261,15 +258,14 @@ and repeatEval(statList: Statement List,
       if condition <> 0 then
           vtab'
       else
-          repeatEval(statList, e, vtab', ptab, gSet, varMap)
+          repeatEval(statList, e, vtab', ptab,  varMap)
 
 // Executes a procedure call
 and callProcWithVtable (procdec: ProcDec,
                         aargs : Param List,
                         vtab  : VarTable,
                         ptab  : ProcTable,
-                        poscall : Position,
-                        gSet : GlobalVars) =
+                        poscall : Position) : VarTable =
 
     let (ProcDec (pid, pargs, statements, position)) = procdec
 
@@ -277,34 +273,36 @@ and callProcWithVtable (procdec: ProcDec,
     if pargs.Length <> aargs.Length then
         raise(InterpreterErr("Wrong number of args", poscall))
 
+    // check is aargs are unique
+    if not (isUniqueParam aargs) then
+        raise(InterpreterErr("Dublicate args given in procedure call", poscall))
+
     let aargsStr = List.map (fun x -> getStringOfParam x) aargs
-    // Only the values from the global list and parameters
+    // Only the values from actual parameters
     // are passed in to the function.
-    let passedVars = Set.toList(Set.union (Set.ofList gSet) (Set.ofList aargsStr))
     let vtab' = List.fold (fun acc x ->
                            match SymTab.lookup x vtab with
                              | None   ->  // None should never happen
                                 raise(InterpreterErr("Variable not found in SymbolTable", poscall))
                              | Some v ->
-                                SymTab.bind x v acc ) (SymTab.empty()) passedVars
+                                SymTab.bind x v acc ) (SymTab.empty()) aargsStr
 
     // Creates a list of pairs of actual and formal parameters
     let varPair  = List.zip pargs aargs
     // Substitute formal parameters in body with actual
     let s' = Substitute.subStatementList(statements, varPair)
-    SymTab.combine (evalStatementList(s', vtab', ptab, gSet, varPair)) vtab
+    SymTab.combine (evalStatementList(s', vtab', ptab,  varPair)) vtab
 
 // Recursively evaluates a list of statements
 and evalStatementList(sList : Statement List,
                       vtab : VarTable,
                       ptab : ProcTable,
-                      gSet : GlobalVars,
                       varMap: VarMapping) : VarTable =
     match sList with
         | []       -> vtab
         | s :: ss  ->
-            let vtab' = evalStatement(s, vtab, ptab,gSet,varMap)
-            evalStatementList(ss, vtab', ptab, gSet,varMap)
+            let vtab' = evalStatement(s, vtab, ptab,varMap)
+            evalStatementList(ss, vtab', ptab, varMap)
 
 // Evaluates a whole program (The main of the interpreter)
 and evalProg (prog: Program) : int =
@@ -319,6 +317,6 @@ and evalProg (prog: Program) : int =
     if not (declStr = List.distinct declStr) then
         raise (InterpreterErr("Dublicate variables in declaration", (0,0)))
     // Run 'main' statements
-    let vtab' = evalStatementList (statements, vtab, ptab, declStr, [])
+    let vtab' = evalStatementList (statements, vtab, ptab, [])
     // Check if all variables are zero
     StaticChecker.checkVarsIsZero(vtab', declStr)

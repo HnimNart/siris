@@ -1,6 +1,6 @@
 x, y;
 x += 3;
-y += 2;
+y += 1;
 local t = 1;
 call F(x);
 print(y);
@@ -17,10 +17,9 @@ procedure F(n)
    else
      n += 1;
    fi (1);
+   print(n);
 end
 
 procedure G(k)
-   y -= 1;
-   print(x);
    print(k);
 end
