@@ -278,12 +278,11 @@ and callProcWithVtable (procdec: ProcDec,
         raise(InterpreterErr("Dublicate args given in procedure call", poscall))
 
     let aargsStr = List.map (fun x -> getStringOfParam x) aargs
-    // Only the values from actual parameters
-    // are passed in to the function.
+    // Binds params
     let vtab' = List.fold (fun acc x ->
                            match SymTab.lookup x vtab with
-                             | None   ->  // None should never happen
-                                raise(InterpreterErr("Variable not found in SymbolTable", poscall))
+                             | None   ->
+                                raise(InterpreterErr("Variable " + x + " not defined", poscall))
                              | Some v ->
                                 SymTab.bind x v acc ) (SymTab.empty()) aargsStr
 
