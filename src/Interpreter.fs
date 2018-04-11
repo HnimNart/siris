@@ -234,13 +234,10 @@ and evalExp(e: Exp,
               match (n1, n2) with
                   | (x,y) when x <> 0 && y <> 0 -> IntVal(1)
                   | _                           -> IntVal(0)
-  | Not (e, pos)  ->
+  | Neg (e, pos)  ->
         let r1 = evalExp(e, vtab)
         match r1 with
-          | (IntVal n1)  ->
-              match n1 with
-                  | x when x = 0 -> IntVal(1)
-                  | _            -> IntVal(0)
+          | (IntVal n1)  -> IntVal (-n1)
 
 // A function for Repeat statement after
 // the initial test that the condition is true

@@ -4,5 +4,5 @@ if (x) then
   x += 3;
 else
   x += 1111;
-fi (!!x);
+fi (x);
 print(x);

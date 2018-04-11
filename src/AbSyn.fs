@@ -31,7 +31,7 @@ type Exp<'T> =
   | Equal of Exp<'T> * Exp<'T> * Position
   | Or of Exp<'T> * Exp<'T> * Position
   | And of Exp<'T> * Exp<'T> * Position
-  | Not of Exp<'T> * Position
+  | Neg of Exp<'T> * Position
 
 type Statement<'T> =
     PlusAssignment of string * Exp<'T> * Position

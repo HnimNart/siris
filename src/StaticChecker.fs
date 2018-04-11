@@ -54,8 +54,7 @@ let rec checkLhsVar(e: Exp, lhsvar:string):unit =
         | And (e1, e2, pos)  ->
             checkLhsVar(e1,lhsvar)
             checkLhsVar(e2,lhsvar)
-        | Not (e, pos)  ->
-            raise(StaticException("Cannot use Not(!) in an assignment statement", pos))
+        | Neg (e, pos)  ->
             checkLhsVar(e,lhsvar)
 
 // Performs static checks of statements

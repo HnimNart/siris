@@ -142,6 +142,6 @@ and subVarsInExp(e: Exp,
           let e1' = subVarsInExp(e1, pairs)
           let e2' = subVarsInExp(e2, pairs)
           And(e1',e2', pos)
-      | Not (e, pos)  ->
+      | Neg (e, pos)  ->
           let e' = subVarsInExp(e, pairs)
-          Not(e', pos)
+          Neg(e', pos)
