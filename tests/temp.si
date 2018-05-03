@@ -1,0 +1,6 @@
+x;
+read(x);
+local y = x * 5;
+x <=> y;
+delocal y = x / 5;
+print(x);

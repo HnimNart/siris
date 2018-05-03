@@ -1,15 +1,21 @@
-x,y,g,l;
+x,y,g;
 read(x);
 read(y);
-// x += 1071;
-// y += 462;
-// Result should be 21
 call GCD(x, y, g);
 print(x);
 print(y);
 print(g);
 
 procedure GCD(a, b, c)
+
+    local tmp = a;
+    if (a < b) then
+       a <=> b;
+    else
+       a += 0;
+    fi (tmp == b);
+    delocal tmp = a;
+
     local gcd   = a;
     local btmp  = b;
     repeat
@@ -23,19 +29,3 @@ procedure GCD(a, b, c)
     delocal gcd = c;
     delocal btmp = 0;
 end
-
-// procedure GCD(a, b, gcd)
-//     local btmp = b;
-//     local lcm  = 0;
-//     gcd += a;
-//     repeat
-//         local t = gcd % b;
-//         gcd <=> b;
-//         b <=> t;
-//         delocal t = lcm * b / a;
-//     until (b == 0 || gcd == a);
-//     lcm += a * btmp / gcd;
-//     print(lcm);
-//     delocal lcm = 0;
-//     delocal btmp = gcd / a;
-// end

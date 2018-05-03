@@ -7,7 +7,7 @@ procedure Fact(n, retval)
   retval += 1;
   repeat
     local tmp = retval * n;
-         retval <=> tmp;
+    retval <=> tmp;
     delocal tmp = retval / n;
     n -= 1;
   until (n == 0 || retval == 1);

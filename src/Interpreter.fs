@@ -14,9 +14,7 @@ let mapVarToString(s:string, mappingList:VarMapping) : string =
     let var = List.find (fun (v,v') -> getStringOfParam(v') = s) mappingList
     getStringOfParam (fst var)
 
-
 let isUniqueParam list = list = List.distinct list
-
 
 let constZero = IntVal(0)
 
@@ -36,12 +34,11 @@ let rec buildPtab(pdecs: ProcDec list): ProcTable =
     let ptab  = buildPtab ps
     match SymTab.lookup pid ptab with
       | None         ->
-         // Check that every local statement has a corresponding delocal
+         // Check that procedure body fullfills constraint
          StaticChecker.checkStatements(getProcStat pdcl, [], param)
          SymTab.bind pid pdcl ptab
 
       | Some ofdecl  ->
-          (* Report the first occurrence of the name. *)
           raise (InterpreterErr ("Already defined procedure : "+pid, getProcPos ofdecl))
 
 let rec evalStatement(s: Statement,
@@ -50,23 +47,27 @@ let rec evalStatement(s: Statement,
                       varMap: VarMapping): VarTable =
   match s with
   | PlusAssignment(var, e, pos)  ->
-      let eVal = evalExp(e, vtab)
-      let value = SymTab.lookup var vtab
-      match value with
+      let eVal =
+          match evalExp(e, vtab) with
+              | IntVal n -> n
+
+      match SymTab.lookup var vtab with
         | None  ->
             raise (InterpreterErr("LHS variable " + var + " is not defined", pos))
-        | Some n  ->
-            let newVal = evalExp (Plus(Constant(n, pos), Constant(eVal,pos),pos), vtab )
+        | Some (IntVal v)  ->
+            let newVal = IntVal(v+eVal)
             SymTab.bind var newVal vtab
 
   | MinusAssignment(var , e, pos )  ->
-      let eVal = evalExp(e, vtab)
-      let value = SymTab.lookup var vtab
-      match value with
+      let eVal =
+          match evalExp(e, vtab) with
+              | IntVal n -> n
+
+      match SymTab.lookup var vtab with
         | None  ->
             raise (InterpreterErr("LHS variable " + var + " is not defined", pos))
-        | Some n  ->
-            let newVal = evalExp (Minus(Constant(n, pos), Constant(eVal,pos),pos), vtab)
+        | Some (IntVal v)  ->
+            let newVal = IntVal(v - eVal)
             SymTab.bind var newVal vtab
 
   | If(e1, s1, s2, e2, pos)  ->
@@ -97,7 +98,7 @@ let rec evalStatement(s: Statement,
           then
               raise (InterpreterErr("Repeat: Condition false at entry", pos))
           else
-              repeatEval(s1, e1, vtab, ptab, varMap)
+              evalRepeat(s1, e1, vtab, ptab, varMap)
 
   | Call (id, param, pos)  ->
       match SymTab.lookup id ptab with
@@ -112,28 +113,25 @@ let rec evalStatement(s: Statement,
             callProcWithVtable (ProcDec(id, parg, iStat, pos), param , vtab, ptab, pos)
 
   | Print(var, pos) ->
-      let value =
-          match SymTab.lookup var vtab with
-              | Some v -> v
-              | None -> raise( InterpreterErr("Argument " + var + " in print not defined", pos))
-
-      match value with
-        | IntVal( v ) ->
+      match SymTab.lookup var vtab with
+        | Some (IntVal(v)) ->
              printf "%i\n" v
              SymTab.bind var constZero vtab
+        | None -> raise( InterpreterErr("Argument " + var + " in print not defined", pos))
 
    | Read(var, pos) ->
        match SymTab.lookup var vtab with
-         | Some v ->
-           match v with
-             | IntVal v1 ->
-                 if v1 <> 0
-                 then
-                   raise( InterpreterErr("Argument "+ (mapVarToString(var, varMap)) + " in read not zero", pos))
-                 else
-                   let value : int  = int(Console.ReadLine())
-                   let v' = IntVal(value)
-                   SymTab.bind var v' vtab
+         | Some (IntVal v) ->
+              if v <> 0
+              then
+                raise(InterpreterErr("Argument "+ (mapVarToString(var, varMap)) + " in read not zero", pos))
+              else
+                try
+                  let value : int  = int(Console.ReadLine())
+                  let v' = IntVal(value)
+                  SymTab.bind var v' vtab
+                with
+                  |  :? System.FormatException -> raise(InterpreterErr("Can only input integer values in read", pos))
          | None -> raise( InterpreterErr("Argument "+var+" in read not defined", pos))
 
    | Local(var, e, pos) ->
@@ -241,7 +239,7 @@ and evalExp(e: Exp,
 
 // A function for Repeat statement after
 // the initial test that the condition is true
-and repeatEval(statList: Statement List,
+and evalRepeat(statList: Statement List,
                e : Exp,
                vtab : VarTable,
                ptab : ProcTable,
@@ -255,7 +253,7 @@ and repeatEval(statList: Statement List,
       if condition <> 0 then
           vtab'
       else
-          repeatEval(statList, e, vtab', ptab,  varMap)
+          evalRepeat(statList, e, vtab', ptab,  varMap)
 
 // Executes a procedure call
 and callProcWithVtable (procdec: ProcDec,
@@ -268,7 +266,7 @@ and callProcWithVtable (procdec: ProcDec,
 
     // Check if arg lists match
     if pargs.Length <> aargs.Length then
-        raise(InterpreterErr("Wrong number of args", poscall))
+        raise(InterpreterErr("Wrong number of args in procedure " + pid, poscall))
 
     // check is aargs are unique
     if not (isUniqueParam aargs) then
@@ -315,4 +313,4 @@ and evalProg (prog: Program) : int =
     // Run 'main' statements
     let vtab' = evalStatementList (statements, vtab, ptab, [])
     // Check if all variables are zero
-    StaticChecker.checkVarsIsZero(vtab', declStr)
+    StaticChecker.checkVarsAreZero(vtab', declStr)

@@ -21,7 +21,6 @@ let rec renameLocal(var:string,
         | (s1, s2) :: _ when (getStringOfParam s2) = var  -> newName var
         | _ :: pairss                        -> renameLocal(var, pairss)
 
-
 // Helper function to find a corresponding variable name from pairs
 // Return the same name if it's not found.
 // If the variable is not found then we don't need to map it.

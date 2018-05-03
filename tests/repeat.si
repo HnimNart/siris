@@ -1,0 +1,7 @@
+x, y;
+read(y);
+x += y;
+repeat
+    x -= 1;
+until (x == 0 || y == x);
+print(y);
